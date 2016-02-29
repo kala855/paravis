@@ -131,8 +131,8 @@ int main(){
   nstp_prn = 20;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 165;
-  Ny = 165;
+  Nx = 30;
+  Ny = 30;
   cell_to_stim = 47;   // 70 in plot
   db row_to_stim = 4;
   db bengin_cell = row_to_stim*(Nx+2) + 1;
