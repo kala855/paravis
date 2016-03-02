@@ -61,40 +61,31 @@ void load_Matrix_A(mat &A, int Nx, int Ny,db Sx, db Sy){
   }
 }
 
-void copy_voltage(vector<Cell> &cells, vec &X, vec &prevV,int Nx,db dt){
-  int idx = Nx;
-  for(int i=0; i<X.size(); i++){
-    idx =(i%Nx==0)? idx+3 : idx+1 ;
-    cells[idx].dvdt = (X(i) - cells[idx].V)/dt;
-    cells[idx].V = X(i);
-    prevV(idx) = X(i);
-  }
-}
 
-// Imprime los voltages calculados por DF en un tiempo determinado.
-void print_solutions(vec &X,db t){
-  cout<<t;
-  for(int i=0; i<X.n_rows; i++)
-    cout<<"  "<<X(i);
-  cout<<endl;
-}
 
-void copy_prevV(vec &prevV,int Nx, vec X){
-  for(int node=Nx+3,i=0; node<(prevV.n_rows-(Nx+3)); node++){
-    if(node%(Nx+2)!=0 && (node+1)%(Nx+2)!=0){
-      prevV(node) = X(i++);
+int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
+    char file_name[50];
+    sprintf(file_name,"testParalelo%d.csv",iteration);
+    ofstream myfile;
+    myfile.open(file_name,ios::app);
+    for (int i = 0; i < nodesA; i++) {
+        myfile << t << ","<< X(i).host<double>()[0] << endl;
     }
-  }
+
+    myfile.close();
+    return 0;
 }
 
-void set_prevV(vec &prevV,int Nx, db value){
-  for(int node=Nx+3,i=0; node<(prevV.n_rows-(Nx+3)); node++){
-    if(node%(Nx+2)!=0 && (node+1)%(Nx+2)!=0){
-      prevV(node) = value;
+int copy_voltage(vector<Cell> &cells,af::array &X, af::array &prevV, int Nx, int size){
+    int idx = Nx;
+    //db *Xaux = X.host<db>();
+    for (int i = 0; i < size; i++) {
+        idx = (i%Nx==0)? idx+3 : idx+1;
+        cells[idx].V = X(i).host<double>()[0];
+        prevV(idx) = X(i);
     }
-  }
+    //af::free(Xaux);
 }
-
 
 int main(){
   db deltaX,deltaY;
@@ -131,10 +122,10 @@ int main(){
   nstp_prn = 20;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 30;
-  Ny = 30;
+  Nx = 5;
+  Ny = 5;
   cell_to_stim = 47;   // 70 in plot
-  db row_to_stim = 4;
+  db row_to_stim = 1;
   db bengin_cell = row_to_stim*(Nx+2) + 1;
 
   dt = 0.02;
@@ -189,9 +180,9 @@ int main(){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
-  nstp=-1;  // only for one iteration
+  //nstp=-1;  // only for one iteration
 
-  for(int k=0; k<1/*<nstp+2*/; k++,t+=dt){ //each time
+  for(int k=0; k<nstp+2; k++,t+=dt){ //each time
     pos = 0;
     if(t>=tbegin && t<=tend){
       flag_stm = 0.0;
@@ -209,6 +200,9 @@ int main(){
     for(int node=Nx+3; node<(nodes-(Nx+3)); node++){
       db BC = 0;       // boundary condition
       db rhs = 0;      // rigth hand side
+
+      afBC = 0.0;
+      afrhs = 0.0;
 
       upper = node + (Nx+2);
       lower = node - (Nx+2);
@@ -253,15 +247,11 @@ int main(){
     }
     ////Array Fire Solver
     afX = af::solve(afA,afB);
-    //afX = af::solveLU(afALU,pivot,afB);
-    afPrevV = afX;
-
-    //copy_prevV(prevV,Nx,X);
-    //copy_voltage(cells,X,prevV,Nx,dt);
-    //if(k%nstp_prn==0)                //use this for plot all beats
-  //  if(k%nstp_prn==0 && k>time_to_print)   //use this for plot last beat
-    //  print_solutions(X,t);
+    copy_voltage(cells,afX,afPrevV,Nx,nodesA);
+    create_voltage_file(t,afX,nodesA,k);
   }
+  //af_print(afA);
+  //af_print(afB);
   //af_print(afX);
   return 0;
 }
