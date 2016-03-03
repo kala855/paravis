@@ -62,7 +62,6 @@ void load_Matrix_A(mat &A, int Nx, int Ny,db Sx, db Sy){
 }
 
 
-
 int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
     char file_name[50];
     sprintf(file_name,"testParalelo%d.csv",iteration);
@@ -248,10 +247,8 @@ int main(){
     ////Array Fire Solver
     afX = af::solve(afA,afB);
     copy_voltage(cells,afX,afPrevV,Nx,nodesA);
-    create_voltage_file(t,afX,nodesA,k);
+    if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat
+        create_voltage_file(t,afX,nodesA,k);
   }
-  //af_print(afA);
-  //af_print(afB);
-  //af_print(afX);
   return 0;
 }
