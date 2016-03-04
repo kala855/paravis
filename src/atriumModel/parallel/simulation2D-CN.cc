@@ -118,11 +118,11 @@ int main(){
   dtstim = 2;
   CurrStim = -8000;
   cell_type = 1;
-  nstp_prn = 20;
+  nstp_prn = 50;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 5;
-  Ny = 5;
+  Nx = 15;
+  Ny = 15;
   cell_to_stim = 47;   // 70 in plot
   db row_to_stim = 1;
   db bengin_cell = row_to_stim*(Nx+2) + 1;
