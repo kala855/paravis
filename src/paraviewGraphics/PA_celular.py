@@ -1,30 +1,35 @@
 #### import the simple module from the paraview
 from paraview.simple import *
 import os, os.path
+import random
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 
 
 def setDisplayProperties(plotSelectionDisplay):
+    i = 0.0;
     for plotDisplay in plotSelectionDisplay:
+        r = str(random.random())
+        g = str(random.random())
+        b = str(random.random())
         plotDisplay.AttributeType = 'Row Data'
         plotDisplay.UseIndexForXAxis = 0
         plotDisplay.XArrayName = 'Time'
         plotDisplay.SeriesVisibility = ['Field 0 (Row Statistics)', 'Field 1 (Row Statistics)']
         plotDisplay.SeriesLabel = ['N (Row Statistics)', 'N (Row Statistics)', 'Field 0 (Row Statistics)', 'Field 0 (Row Statistics)', 'Field 1 (Row Statistics)', 'Field 1 (Row Statistics)', 'vtkOriginalRowIds (Row Statistics)', 'vtkOriginalRowIds (Row Statistics)', 'Time (Row Statistics)', 'Time (Row Statistics)']
-        plotDisplay.SeriesColor = ['N (Row Statistics)', '0', '0', '0', 'Field 0 (Row Statistics)', '0.89', '0.1', '0.11', 'Field 1 (Row Statistics)', '0.22', '0.49', '0.72', 'vtkOriginalRowIds (Row Statistics)', '0.3', '0.69', '0.29', 'Time (Row Statistics)', '0.6', '0.31', '0.64']
+        plotDisplay.SeriesColor = ['N (Row Statistics)', '0', '0', '0', 'Field 0 (Row Statistics)', '0.0', '0.0', '0.0', 'Field 1 (Row Statistics)', '0.0', '0.0', '0.0', 'vtkOriginalRowIds (Row Statistics)', '0.3', '0.69', '0.29', 'Time (Row Statistics)', '0.6', '0.31', '0.64']
         plotDisplay.SeriesPlotCorner = ['N (Row Statistics)', '0', 'Field 0 (Row Statistics)', '0', 'Field 1 (Row Statistics)', '0', 'vtkOriginalRowIds (Row Statistics)', '0', 'Time (Row Statistics)', '0']
         plotDisplay.SeriesLineStyle = ['N (Row Statistics)', '1', 'Field 0 (Row Statistics)', '1', 'Field 1 (Row Statistics)', '1', 'vtkOriginalRowIds (Row Statistics)', '1', 'Time (Row Statistics)', '1']
         plotDisplay.SeriesLineThickness = ['N (Row Statistics)', '2', 'Field 0 (Row Statistics)', '2', 'Field 1 (Row Statistics)', '2', 'vtkOriginalRowIds (Row Statistics)', '2', 'Time (Row Statistics)', '2']
         plotDisplay.SeriesMarkerStyle = ['N (Row Statistics)', '0', 'Field 0 (Row Statistics)', '0', 'Field 1 (Row Statistics)', '0', 'vtkOriginalRowIds (Row Statistics)', '0', 'Time (Row Statistics)', '0']
         # Properties modified on plotSelectionOverTime1Display
         plotDisplay.SeriesVisibility = ['Field 1 (Row Statistics)']
-        plotDisplay.SeriesColor = ['N (Row Statistics)', '0', '0', '0', 'Field 0 (Row Statistics)', '0.889998', '0.100008', '0.110002', 'Field 1 (Row Statistics)', '0.220005', '0.489998', '0.719997', 'vtkOriginalRowIds (Row Statistics)', '0.300008', '0.689998', '0.289998', 'Time (Row Statistics)', '0.6', '0.310002', '0.639994']
+        plotDisplay.SeriesColor = ['N (Row Statistics)', '0', '0', '0', 'Field 0 (Row Statistics)', '0.889998', '0.100008', '0.110002', 'Field 1 (Row Statistics)', r, g, b, 'vtkOriginalRowIds (Row Statistics)', '0.300008', '0.689998', '0.289998', 'Time (Row Statistics)', '0.6', '0.310002', '0.639994']
         plotDisplay.SeriesPlotCorner = ['Field 0 (Row Statistics)', '0', 'Field 1 (Row Statistics)', '0', 'N (Row Statistics)', '0', 'Time (Row Statistics)', '0', 'vtkOriginalRowIds (Row Statistics)', '0']
         plotDisplay.SeriesLineStyle = ['Field 0 (Row Statistics)', '1', 'Field 1 (Row Statistics)', '1', 'N (Row Statistics)', '1', 'Time (Row Statistics)', '1', 'vtkOriginalRowIds (Row Statistics)', '1']
         plotDisplay.SeriesLineThickness = ['Field 0 (Row Statistics)', '2', 'Field 1 (Row Statistics)', '2', 'N (Row Statistics)', '2', 'Time (Row Statistics)', '2', 'vtkOriginalRowIds (Row Statistics)', '2']
         plotDisplay.SeriesMarkerStyle = ['Field 0 (Row Statistics)', '0', 'Field 1 (Row Statistics)', '0', 'N (Row Statistics)', '0', 'Time (Row Statistics)', '0', 'vtkOriginalRowIds (Row Statistics)', '0']
-
+        i = i + 0.1;
 
 
 def showData(plotSelection,quartileChartView):
@@ -37,16 +42,16 @@ def showData(plotSelection,quartileChartView):
 
 def createPlotSelection():
     plotSelection = []
-    for i in range (0,10):
+    for i in range (0,50):
         selection = IDSelectionSource()
-        selection.IDs = [0L,i+60]
+        selection.IDs = [0L,40+i]
         selection.FieldType = 'ROW'
         # create a new 'Plot Selection Over Time'
         plotSelection.append(PlotSelectionOverTime(Input=testParalelo,Selection=selection))
     return plotSelection
 
 def loadSource():
-    folderTam = '10x10'
+    folderTam = '15x15'
     folder='/home/john/Documents/Projects/paravis/src/atriumModel/parallel/outputdata/'+folderTam
     DIR = folder
     print len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
