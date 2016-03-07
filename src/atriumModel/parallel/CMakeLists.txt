@@ -1,3 +1,5 @@
+# Archivo para realizar la generación de las Makefiles de manera automática
+
 cmake_minimum_required (VERSION 2.8)
 project(cardiac_cell)
 find_package(Armadillo REQUIRED)
