@@ -1,3 +1,5 @@
+#### Este código es construido con el objetivo de poder realizar las gráficas del potencial de acción de las células usando Paraview
+
 #### import the simple module from the paraview
 from paraview.simple import *
 import os, os.path
