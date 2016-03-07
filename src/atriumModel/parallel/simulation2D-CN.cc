@@ -1,5 +1,5 @@
-#include<bits/stdc++.h>
-#include<armadillo>
+#include <bits/stdc++.h>
+#include <armadillo>
 #include "utilities/cell.h"
 #include "arrayfire.h"
 
@@ -210,7 +210,7 @@ int main(){
       j = node % (Nx+2);        //pos in x -> cols
       i = node / (Nx+2);        //pos in y -> rows
 
-      // Estimuando toda una fila de celulas
+      // Estimulando toda una fila de celulas
       if(!flag_stm && (node >= bengin_cell && node <= bengin_cell + Nx -1)){
         Istim = CurrStim;
       }
