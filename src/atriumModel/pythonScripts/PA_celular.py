@@ -53,7 +53,7 @@ def createPlotSelection():
     return plotSelection
 
 def loadSource():
-    folderTam = '15x15'
+    folderTam = '15x15LU'
     folder='/home/john/Documents/Projects/paravis/src/atriumModel/parallel/outputdata/'+folderTam
     DIR = folder
     print len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
