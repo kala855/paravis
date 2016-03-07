@@ -77,13 +77,11 @@ int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
 
 int copy_voltage(vector<Cell> &cells,af::array &X, af::array &prevV, int Nx, int size){
     int idx = Nx;
-    //db *Xaux = X.host<db>();
     for (int i = 0; i < size; i++) {
         idx = (i%Nx==0)? idx+3 : idx+1;
         cells[idx].V = X(i).host<double>()[0];
         prevV(idx) = X(i);
     }
-    //af::free(Xaux);
 }
 
 int main(){
@@ -170,8 +168,8 @@ int main(){
   af::array afBC(1,1);
   af::array afrhs(1,1);
 
-  //af::array afALU, pivot;
-  //af::lu(afALU,pivot,afA);
+  af::array afALU, pivot;
+  af::lu(afALU,pivot,afA);
 
   af::array afPrevV = af::constant(-81.2,nodes);
 
@@ -245,7 +243,8 @@ int main(){
       }
     }
     ////Array Fire Solver
-    afX = af::solve(afA,afB);
+    //afX = af::solve(afA,afB);
+    afX = af::solveLU(afALU, pivot, afB);
     copy_voltage(cells,afX,afPrevV,Nx,nodesA);
     if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat
         create_voltage_file(t,afX,nodesA,k);
