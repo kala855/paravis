@@ -1,5 +1,6 @@
 //header cel class
 #include <math.h>
+#include <cuda.h>
 #define db double
 
 class Cell{
@@ -215,4 +216,10 @@ public:
     void gates_ical(db dt);
     void gates_irel(db dt);
     void comp_itot2(db Istim);
+
+    // device main functions
+    __device__ void d_compute_currents();
+    // device Ion Current functions
+
+
 };

@@ -109,6 +109,15 @@ db Cell::getItot(db dt){
   return Itot;
 }
 
+__device__ void Cell::d_compute_currents(){
+  ECa = ((R*T)/(zca*F)) * log(Coa/Cai);
+  ENa = ((R*T)/(zna*F)) * log(Nao/Nai);
+  EK = ((R*T)/(zk*F)) * log(Ko/Ki);
+  ENC = (F*V) / (R*T);
+
+}
+
+
 /* Calculates All Currents */
 void Cell::compute_currents(){
   ECa = ((R*T)/(zca*F)) * log(Coa/Cai);
@@ -131,6 +140,7 @@ void Cell::compute_currents(){
   comp_ikur ();     // Calculates Ultra-Rapidly activation K Current
   comp_itot();      // Calulates Total Current
 }
+
 
 void Cell::compute_concentrations(db dt){
 
