@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 #include <armadillo>
-#include "utilities/cell.cuh"
+#include "utilities/cell.h"
 #include "arrayfire.h"
 
 using namespace std;
