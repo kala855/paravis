@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 #include <armadillo>
-#include "utilities/cell.h"
+#include "utilities/cell.cuh"
 #include "arrayfire.h"
 
 using namespace std;
@@ -177,7 +177,7 @@ int main(){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
-  //nstp=-1;  // only for one iteration
+  nstp=-1;  // only for one iteration
 
   for(int k=0; k<nstp+2; k++,t+=dt){ //each time
     pos = 0;
