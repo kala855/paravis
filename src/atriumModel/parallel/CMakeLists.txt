@@ -7,13 +7,10 @@ find_package(ArrayFire REQUIRED)
 include_directories(${ArrayFire_INCLUDE_DIRS})
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 find_package(CUDA REQUIRED)
-cuda_add_executable(cardiac_cell simulation2D-CN.cc)
-LIST(APPEND CUDA_NVCC_FLAGS --compiler-options -fno-strict-aliasing -lineinfo -use_fast_math -Xptxas -dlcm=cg)
-LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_20,code=sm_20)
-LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
-LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
-
-target_link_libraries(cardiac_cell cell armadillo ${ArrayFire_CUDA_LIBRARIES}
+SET(CUDA_SEPARABLE_COMPILATION ON)
+#LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_20,code=sm_20)
+#LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
+#LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50)
+cuda_add_executable(cardiac_cell cell.cuh cell.cu simulation2D-CN.cu)
+target_link_libraries(cardiac_cell armadillo ${ArrayFire_CUDA_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT} ${CUDA_LIBRARIES})
-add_subdirectory(utilities)
-

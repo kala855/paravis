@@ -1,13 +1,24 @@
 #include <bits/stdc++.h>
 #include <armadillo>
-#include "utilities/cell.h"
+#include "cell.cuh"
 #include "arrayfire.h"
+#include <af/cuda.h>
 
 using namespace std;
 using namespace arma;
 
 #define db double
 #define PI 3.14159265
+
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess)
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
 
 void load_Matrix_A(mat &A, int Nx, int Ny,db Sx, db Sy){
   db diag = 2.0*Sx + 2.0*Sy + 1.0;
@@ -82,6 +93,12 @@ int copy_voltage(vector<Cell> &cells,af::array &X, af::array &prevV, int Nx, int
         cells[idx].V = X(i).host<double>()[0];
         prevV(idx) = X(i);
     }
+    return 0;
+}
+
+__global__ void testeando(Cell *cells){
+    cells[0].init();
+    cells[0].d_compute_currents();
 }
 
 int main(){
@@ -119,8 +136,8 @@ int main(){
   nstp_prn = 50;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 15;
-  Ny = 15;
+  Nx = 10;
+  Ny = 10;
   cell_to_stim = 47;   // 70 in plot
   db row_to_stim = 1;
   db bengin_cell = row_to_stim*(Nx+2) + 1;
@@ -132,6 +149,7 @@ int main(){
   nodesA = Nx*Ny;                 //nodes calculated in matrix A, no boundary conditions.
 
   vector<Cell> cells(nodes);
+
 
   db areaT = cells[0].pi*pow(cells[0].a,2);  // Capacitive membrane area
   db aCm = cells[0].Cap / areaT;             // Capacitance per unit area pF/cm^2
@@ -152,6 +170,19 @@ int main(){
   //Additional ArrayFire Code
   int device = 0;
   af::setDevice(device);
+
+
+  Cell *d_cells;
+  const size_t sz = nodes * sizeof(Cell);
+  d_cells = new Cell[nodes]();
+  gpuErrchk(cudaMalloc((void**)&d_cells, sz));
+  int af_id = af::getDevice();
+  cudaStream_t af_stream = afcu::getStream(af_id);
+  testeando<<<1,1,0,af_stream>>>(d_cells);
+  gpuErrchk(cudaPeekAtLastError());
+  gpuErrchk(cudaStreamSynchronize(af_stream));
+
+
  // af::info();
 
   double *A_mem = (double*)malloc(nodesA*nodesA*sizeof(double));
@@ -249,5 +280,6 @@ int main(){
     if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat
         create_voltage_file(t,afX,nodesA,k);
   }
+  cudaFree(d_cells);
   return 0;
 }
