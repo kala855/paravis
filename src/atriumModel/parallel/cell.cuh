@@ -2,8 +2,6 @@
 #include <math.h>
 #define db double
 
-
-
 class Cell{
 public:
     //------------    parameters   ----------------
@@ -181,43 +179,43 @@ public:
 
     // main functions
     __device__ __host__ void init();
-    void compute_currents();
-    void compute_concentrations(db dt);
-    void compute_gates(db dt);
+    __device__ __host__ void compute_currents();
+    __device__ __host__ void compute_concentrations(db dt);
+    __device__ __host__ void compute_gates(db dt);
 
     /* Ion Current Functions */
-    void comp_ina ();        /* Calculates Fast Na Current */
-    void comp_ical ();       /* Calculates Currents through L-Type Ca Channel */
-    void comp_ikr ();        /* Calculates Rapidly Activating K Current */
-    void comp_iks ();        /* Calculates Slowly Activating K Current */
-    void comp_ik1 ();        /* Calculates Time-Independant K Current */
-    void comp_ikach();       /* Calculates Acetylcholine-sensitive potassium*/
-    void comp_ikur ();       /* Calculates Ultra-Rapidly activation K Current*/
-    void comp_ito ();        /* Calculates Transient Outward Current */
-    void comp_inaca ();      /* Calculates Na-Ca Exchanger Current */
-    void comp_inak ();       /* Calculates Na-K Pump Current */
-    void comp_ipca ();       /* Calculates Sarcolemmal Ca Pump Current */
-    void comp_ibca ();       /* Calculates Ca Background Current */
-    void comp_ibna ();       /* Calculates Na Background Current */
-    void comp_irel();        // Compute Ca2+ Release Current From JSR Irel
-    void comp_itr();         // Time constant of Ca transfer from NSR to JSR(ms)
-    void comp_iup();         // Compute Ca2+ Uptake Current by NSR Iup
-    void comp_iupleak();     // Compute Ca2+ Leak Current by the NSR Iup_leak
-    void comp_itot ();       /* Calculates Total Current */
-    db getItot(db dt);       /* Return Itot */
-    void conc_nai(db dt);    /* Calculates new myoplasmic Na ion concentration */
-    void conc_ki(db dt);     /* Calculates new myoplasmic K ion concentration */
-    void conc_cai(db dt);    /* Calculates new myoplasmic Ca ion concentration */
-    void conc_ca_up(db dt);
-    void conc_ca_rel(db dt);
-    void gates_ina(db dt);
-    void gates_ito(db dt);
-    void gates_ikur(db dt);
-    void gates_ikr(db dt);
-    void gates_iks(db dt);
-    void gates_ical(db dt);
-    void gates_irel(db dt);
-    void comp_itot2(db Istim);
+    __device__ __host__ void comp_ina ();        /* Calculates Fast Na Current */
+    __device__ __host__ void comp_ical ();       /* Calculates Currents through L-Type Ca Channel */
+    __device__ __host__ void comp_ikr ();        /* Calculates Rapidly Activating K Current */
+    __device__ __host__ void comp_iks ();        /* Calculates Slowly Activating K Current */
+    __device__ __host__ void comp_ik1 ();        /* Calculates Time-Independant K Current */
+    __device__ __host__ void comp_ikach();       /* Calculates Acetylcholine-sensitive potassium*/
+    __device__ __host__ void comp_ikur ();       /* Calculates Ultra-Rapidly activation K Current*/
+    __device__ __host__ void comp_ito ();        /* Calculates Transient Outward Current */
+    __device__ __host__ void comp_inaca ();      /* Calculates Na-Ca Exchanger Current */
+    __device__ __host__ void comp_inak ();       /* Calculates Na-K Pump Current */
+    __device__ __host__ void comp_ipca ();       /* Calculates Sarcolemmal Ca Pump Current */
+    __device__ __host__ void comp_ibca ();       /* Calculates Ca Background Current */
+    __device__ __host__ void comp_ibna ();       /* Calculates Na Background Current */
+    __device__ __host__ void comp_irel();        // Compute Ca2+ Release Current From JSR Irel
+    __device__ __host__ void comp_itr();         // Time constant of Ca transfer from NSR to JSR(ms)
+    __device__ __host__ void comp_iup();         // Compute Ca2+ Uptake Current by NSR Iup
+    __device__ __host__ void comp_iupleak();     // Compute Ca2+ Leak Current by the NSR Iup_leak
+    __device__ __host__ void comp_itot ();       /* Calculates Total Current */
+    __device__ __host__ db getItot(db dt);       /* Return Itot */
+    __device__ __host__ void conc_nai(db dt);    /* Calculates new myoplasmic Na ion concentration */
+    __device__ __host__ void conc_ki(db dt);     /* Calculates new myoplasmic K ion concentration */
+    __device__ __host__ void conc_cai(db dt);    /* Calculates new myoplasmic Ca ion concentration */
+    __device__ __host__ void conc_ca_up(db dt);
+    __device__ __host__ void conc_ca_rel(db dt);
+    __device__ __host__ void gates_ina(db dt);
+    __device__ __host__ void gates_ito(db dt);
+    __device__ __host__ void gates_ikur(db dt);
+    __device__ __host__ void gates_ikr(db dt);
+    __device__ __host__ void gates_iks(db dt);
+    __device__ __host__ void gates_ical(db dt);
+    __device__ __host__ void gates_irel(db dt);
+    __device__ __host__ void comp_itot2(db Istim);
 
     // device main functions
    __device__  __host__ void d_compute_currents();

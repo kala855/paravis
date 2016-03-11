@@ -86,6 +86,84 @@ int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
     return 0;
 }
 
+
+__global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size){
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = Nx;
+    if (i < size){
+        idx = (i%Nx==0)? idx+3 : idx+1;
+        cells[idx].V = X[i];
+        prevV[idx] = X[i];
+    }
+}
+
+
+__global__ void d_update_B_test(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db CurrStim, db aCm,
+        db areaT, int nodes, int flag_stm, db begin_cell, Cell *cells ,db *B, db *prevV){
+    int pos = 0, i, j, upper, lower, prev, next;
+    db Iion, Jion;
+    db BC = 0;       // boundary condition
+    db rhs = 0;      // rigth hand side
+    int node = (blockIdx.x*blockDim.x + threadIdx.x)+(Nx+3);
+    if(node<(nodes-(Nx+3))){
+        B[0] = 30.0;
+        //printf("%d\n", node);
+        //printf("%lf\n", prevV[1]);
+    }
+}
+
+
+
+__global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db CurrStim, db aCm,
+        db areaT, int nodes, int flag_stm, db begin_cell, Cell *cells ,db *B, db *prevV){
+    int pos = 0, i, j, upper, lower, prev, next;
+    db Iion, Jion;
+    db BC = 0;       // boundary condition
+    db rhs = 0;      // rigth hand side
+    int node = (blockIdx.x*blockDim.x + threadIdx.x)+(Nx+3);
+    if(node<(nodes-(Nx+3))){
+        upper = 1;/*node + (Nx+2);*/
+        lower = 1;/*node - (Nx+2);*/
+        prev = 1;/*node - 1;*/
+        next = 1;/*node + 1;*/
+        j = node % (Nx+2);        //pos in x -> cols
+        i = node / (Nx+2);        //pos in y -> rows
+        // Estimulando toda una fila de celulas
+        if(!flag_stm && (node >= begin_cell && node <= begin_cell + Nx -1)){
+            Istim = CurrStim;
+        }
+        else{
+            Istim = 0.0;
+        }
+
+        if(j>0 && j<(Nx+1)){
+            printf("%lf\n",prevV[prev]);
+            Iion = cells[node].getItot(dt);
+            if(j==1 && i==1){                           //bottom-left
+                BC = Sx * prevV[prev] + Sy * prevV[lower];
+            }else if(i==1 && j==Nx){                    //bottom-right
+                BC = Sx*prevV[next] + Sy*prevV[lower];
+            }else if(i==1){                             //bottom-middle
+                BC = Sy*prevV[lower];
+            }else if(i==Ny && j==1){                    //top-left
+                BC = Sx*prevV[prev] + Sy*prevV[upper];
+            }else if(i==Ny && j==Ny){                   //top-right
+                BC = Sx*prevV[next] + Sy*prevV[upper];
+            }else if(i==Ny){                            //top-middle
+                BC = Sy*prevV[upper];
+            }else if(j==1){                             //left-middle
+                BC = Sx*prevV[prev];
+            }else if(j==Nx){                            //right-middle
+                BC = Sx*prevV[next];
+            }
+
+            rhs = Sx*prevV[prev] + (1.0-2.0*Sx-2.0*Sy)* prevV[node] + Sx*prevV[next] + Sy*prevV[lower] + Sy*prevV[upper];
+            Jion = (Iion + Istim)/areaT;
+            B[pos++] = rhs + BC - (Jion*dt/aCm);
+        }
+    }
+}
+
 int copy_voltage(vector<Cell> &cells,af::array &X, af::array &prevV, int Nx, int size){
     int idx = Nx;
     for (int i = 0; i < size; i++) {
@@ -96,9 +174,17 @@ int copy_voltage(vector<Cell> &cells,af::array &X, af::array &prevV, int Nx, int
     return 0;
 }
 
-__global__ void testeando(Cell *cells){
-    cells[0].init();
-    cells[0].d_compute_currents();
+__global__ void testeando(Cell *cells,int nodes){
+    //cells[0].init();
+    cells = new Cell[nodes]();
+}
+
+
+
+__global__ void init_d_prevv(int nodes, db *d_prevV){
+    int i = blockIdx.x*blockDim.x+threadIdx.x;
+    if(i<nodes)
+        d_prevV[i] = -81.2;
 }
 
 int main(){
@@ -140,7 +226,7 @@ int main(){
   Ny = 10;
   cell_to_stim = 47;   // 70 in plot
   db row_to_stim = 1;
-  db bengin_cell = row_to_stim*(Nx+2) + 1;
+  db begin_cell = row_to_stim*(Nx+2) + 1;
 
   dt = 0.02;
   deltaX = deltaY = 0.025;
@@ -172,16 +258,20 @@ int main(){
   af::setDevice(device);
 
 
-  Cell *d_cells;
+  Cell *d_cells, *h_cells;
   const size_t sz = nodes * sizeof(Cell);
-  d_cells = new Cell[nodes]();
+  h_cells = new Cell[nodes]();
   gpuErrchk(cudaMalloc((void**)&d_cells, sz));
+  gpuErrchk(cudaMemcpy(d_cells, h_cells, sz, cudaMemcpyHostToDevice))
   int af_id = af::getDevice();
   cudaStream_t af_stream = afcu::getStream(af_id);
-  testeando<<<1,1,0,af_stream>>>(d_cells);
+  /*testeando<<<1,1,0,af_stream>>>(d_cells, nodes);
   gpuErrchk(cudaPeekAtLastError());
-  gpuErrchk(cudaStreamSynchronize(af_stream));
+  gpuErrchk(cudaStreamSynchronize(af_stream));*/
 
+  int blockSize = 1024;
+  dim3 dimGrid(ceil(float(nodes)/float(blockSize)),1,1);
+  dim3 dimBlock(blockSize,1,1);
 
  // af::info();
 
@@ -194,10 +284,21 @@ int main(){
   X_mem = X.memptr();
 
   af::array afA(nodesA,nodesA,A_mem);
-  af::array afB(nodesA,f64);
+//  af::array afB(nodesA,f64);
   af::array afX(nodesA,f64);
   af::array afBC(1,1);
   af::array afrhs(1,1);
+  db *d_B;
+  db *d_prevV;
+
+  gpuErrchk(cudaMalloc((void**)&d_B,nodesA*sizeof(db)));
+  gpuErrchk(cudaMalloc((void**)&d_prevV,nodes*sizeof(db)));
+
+  init_d_prevv<<<dimGrid,dimBlock,0,af_stream>>>(nodes, d_prevV);
+  gpuErrchk(cudaPeekAtLastError());
+  gpuErrchk(cudaStreamSynchronize(af_stream));
+
+
 
   af::array afALU, pivot;
   af::lu(afALU,pivot,afA);
@@ -225,61 +326,21 @@ int main(){
         flag_stm = 1.0;
       }
     }
-    for(int node=Nx+3; node<(nodes-(Nx+3)); node++){
-      db BC = 0;       // boundary condition
-      db rhs = 0;      // rigth hand side
 
-      afBC = 0.0;
-      afrhs = 0.0;
+    d_update_B_test<<<dimGrid, dimBlock,0,af_stream>>>(Nx,Ny,dt,Sx,Sy,Istim,CurrStim,aCm,areaT,nodes,
+            flag_stm,begin_cell,d_cells,d_B,d_prevV);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaStreamSynchronize(af_stream));
+    af::array afB(nodesA,d_B,afDevice);
 
-      upper = node + (Nx+2);
-      lower = node - (Nx+2);
-      prev = node - 1;
-      next = node + 1;
-      j = node % (Nx+2);        //pos in x -> cols
-      i = node / (Nx+2);        //pos in y -> rows
-
-      // Estimulando toda una fila de celulas
-      if(!flag_stm && (node >= bengin_cell && node <= bengin_cell + Nx -1)){
-        Istim = CurrStim;
-      }
-      else{
-        Istim = 0.0;
-      }
-
-      if(j>0 && j<(Nx+1)){
-        Iion = cells[node].getItot(dt);
-
-        if(j==1 && i==1){                           //bottom-left
-          afBC = Sx * afPrevV(prev) + Sy * afPrevV(lower);
-        }else if(i==1 && j==Nx){                    //bottom-right
-          afBC = Sx*afPrevV(next) + Sy*afPrevV(lower);
-        }else if(i==1){                             //bottom-middle
-          afBC = Sy*afPrevV(lower);
-        }else if(i==Ny && j==1){                    //top-left
-          afBC = Sx*afPrevV(prev) + Sy*afPrevV(upper);
-        }else if(i==Ny && j==Ny){                   //top-right
-          afBC = Sx*afPrevV(next) + Sy*afPrevV(upper);
-        }else if(i==Ny){                            //top-middle
-          afBC = Sy*afPrevV(upper);
-        }else if(j==1){                             //left-middle
-          afBC = Sx*afPrevV(prev);
-        }else if(j==Nx){                            //right-middle
-          afBC = Sx*afPrevV(next);
-        }
-
-        afrhs = Sx*afPrevV(prev) + (1.0-2.0*Sx-2.0*Sy)*afPrevV(node) + Sx*afPrevV(next) + Sy*afPrevV(lower) + Sy*afPrevV(upper);
-        Jion = (Iion + Istim)/areaT;
-        afB(pos++) = afrhs + afBC - (Jion*dt/aCm);
-      }
-    }
+    af_print(afB);
     ////Array Fire Solver
     //afX = af::solve(afA,afB);
     afX = af::solveLU(afALU, pivot, afB);
-    copy_voltage(cells,afX,afPrevV,Nx,nodesA);
+    /*copy_voltage(cells,afX,afPrevV,Nx,nodesA);
     if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat
-        create_voltage_file(t,afX,nodesA,k);
+        create_voltage_file(t,afX,nodesA,k);*/
   }
-  cudaFree(d_cells);
+  //cudaFree(d_cells);
   return 0;
 }
