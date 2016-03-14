@@ -103,6 +103,7 @@ __global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db Cu
         j = node % (Nx+2);        //pos in x -> cols
         i = node / (Nx+2);        //pos in y -> rows
         // Estimulando toda una fila de celulas
+        //printf("j=%d\n",j);
         if(!flag_stm && (node >= begin_cell && node <= begin_cell + Nx -1)){
             Istim = CurrStim;
         }
@@ -112,7 +113,7 @@ __global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db Cu
 
         if(j>0 && j<(Nx+1)){
             int t = node-(Nx+3);
-            pos = ((t/(Nx+2)) *Nx)+j;
+            pos = ((t/(Nx+2)) *Nx)+j - 1;
             //printf("%lf\n",prevV[prev]);
             Iion = cells[node].getItot(dt);
             if(j==1 && i==1){                           //bottom-left
@@ -135,7 +136,8 @@ __global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db Cu
 
             rhs = Sx*prevV[prev] + (1.0-2.0*Sx-2.0*Sy)* prevV[node] + Sx*prevV[next] + Sy*prevV[lower] + Sy*prevV[upper];
             Jion = (Iion + Istim)/areaT;
-            B[pos++] = rhs + BC - (Jion*dt/aCm);
+            printf("B[%d] = %lf\n", pos,B[pos]);
+            B[pos] = rhs + BC - (Jion*dt/aCm);
             //printf("j = %d \t node = %d \t node-(Nx+3) = %d \t pos = %d\n", j, node, node-(Nx+3), pos);
         }
     }
@@ -334,16 +336,16 @@ int main(){
     gpuErrchk(cudaStreamSynchronize(af_stream));
     af::array afB(nodesA,d_B,afDevice);
 
-    //af_print(afB);
+    af_print(afB);
     ////Array Fire Solver
     //afX = af::solve(afA,afB);
-    afX = af::solveLU(afALU, pivot, afB);
+    //afX = af::solveLU(afALU, pivot, afB);
 
-    d_x = afX.device<db>();
-    d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaStreamSynchronize(af_stream));
-    afX.unlock();
+    //d_x = afX.device<db>();
+    //d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
+    //gpuErrchk(cudaPeekAtLastError());
+    //gpuErrchk(cudaStreamSynchronize(af_stream));
+    //afX.unlock();
     //af_print(afX);
     //copy_voltage(cells,afX,d_prevV,Nx,nodesA);
     /*if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat
