@@ -69,77 +69,6 @@
 class Cell{
 public:
     //------------    parameters   ----------------
-
-    //--- constants -----
-   // db R;           // universal gas constant [j/kmol*k);
-    //db T;           // temperature [k);
-    //db F;           // faraday"s constant [c/mol) ;
-   // db RTF;         // j/c
-   // db invRTF;
-
-    //--- capacitance ---
-   // db Cap;         // valor para courtemanche? 0.1 ;
-
-    //intracellular volume
-   // db Vi;          // micro_m^3;
-   // db Vup;         // micro_m^3;
-   // db Vrel;        // micro_m^3;
-
-    //cell geometry
-   // db l;           // length of the cell (cm);
-   // db a;           // radius of the cell (cm);
-   // db pi;
-
-   /* db Ri;
-    db Rix;         // Specific resistance of intracell liquid
-    db Riy;         // Specific resistance of intracell liquid
-
-    // External concentration
-    db Ko;          // initial extracellular k [mm);
-    db Noa;         // initial extracellular na [mm);
-    db Coa; */        // initial extracellular ca [mm);
-
-    /* Maximal  conductances  nS/pF;*/
-    /*db GNa;
-    db GK1;
-    db Gto;
-    db GKr;
-    db GKs;
-    db GCaL;
-    db GbCa;
-    db GbNa;*/
-
-    /* Maximal currents */
-    /*db INaK_max;      // Max. current through Na-K pump (pA/uF)
-    db INaCa_max;     // pA/pF;
-    db IpCa_max;      // max. ca current through sarcolemmal ca pump (ua/uf);
-    db Kq10;          // Temperature scaling factor for IKur and Ito kinetics
-    db gamma;*/         // Voltage dependance parameter for INaCa;
-
-    /* Half-saturation constant for currents */
-    /*db KmNai;       // half-saturation concentration of nak pump (mm);
-    db KmKo;        // half-saturation concentration of nak pump (mm);
-    db KmNa;        // na saturation constant for naca exchanger;
-    db KmCa;        // ca saturation factor for naca exchanger;
-
-    db ksat;*/        // saturation factor for naca exchanger;
-
-    // Ion Valences
-   /* db zna;         // Na valence
-    db zk;          // K valence
-    db zca; */        // Ca valence
-
-    // Myoplasmic Ca Ion Concentration Changes
-    /*db Csqn_max;     // Max. [Ca] buffered in CSQN (mM)
-    db Km_csqn;      // Equalibrium constant of buffering for CSQN (mM)
-    db Cmdn_max;     // Max. [Ca] buffered in CMDN (mM)
-    db Trpn_max;     // Max. [Ca] buffered in TRPN (mM)
-    db kmcmd;        // Equalibrium constant of buffering for CMDN (mM)
-    db Kmtrpn;       // Equalibrium constant of buffering for TRPN (mM)
-    db Iup_max;      // Max. current through iup channel (mM/ms)
-    db caupm;*/        //  Max. [Ca] in NSR (mM)
-    //db tautr;      // Time constant of Ca transfer from NSR to JSR (ms)
-
     // future function "initial conditions"
     db V;           // mV
     db Cai;         // Initial Intracellular Ca
@@ -183,8 +112,7 @@ public:
     //external concentration
     //
 
-    db Nao;        //  initial extracellular na [mm);
-    db Cao;        //  initial extracellular ca [mm);
+    //db Cao;        //  initial extracellular ca [mm);
 
     db kmcmdn;
     db kmtrpn;

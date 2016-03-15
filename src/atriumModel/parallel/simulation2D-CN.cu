@@ -116,6 +116,7 @@ __global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db Cu
             pos = ((t/(Nx+2)) *Nx)+j - 1;
             //printf("%lf\n",prevV[prev]);
             Iion = cells[node].getItot(dt);
+            printf("ECa=%lf\tENa=%lf\tEK=%lf\tENC=%lf\n", cells[node].ECa,cells[node].ENa,cells[node].EK,cells[node].ENC);
             if(j==1 && i==1){                           //bottom-left
                 BC = Sx * prevV[prev] + Sy * prevV[lower];
             }else if(i==1 && j==Nx){                    //bottom-right
@@ -312,10 +313,9 @@ int main(){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
-  //nstp=-1;  // only for one iteration
+  nstp=0;  // only for one iteration
 
   for(int k=0; k<nstp+2; k++,t+=dt){ //each time
-    pos = 0;
     if(t>=tbegin && t<=tend){
       flag_stm = 0.0;
     }else{

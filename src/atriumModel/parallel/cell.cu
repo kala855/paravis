@@ -4,73 +4,6 @@
 
 
 __host__ __device__ Cell::Cell(){
-  // constants
-  //R = 8.3143;         // gas constant [J/K.mmol];
- // T = 310.0;          // temperature [K];
-  //F = 96.4867;        // faraday constant [C/mmol] ;
-  /*RTF = (R*TEMP)/F;      // J/C
-  invRTF = 1.0/RTF;
-
-  Cap = 100.0;        // membrane capacitance [pF]
-
-  Vi = 13668.0;       // intracellular volumen [um^3]
-  Vup = 1109.52;      // SR uptake compartment volume [um^3]
-  Vrel = 96.48;       // SR release compartment volume [um^3]
-
-  // Cell Geometry
-  l = 0.01;           // length of the cell [um]
-  a = 0.0008;         // radius of the cell [um]
-  pi = 2*acos(0.0);*/
-
-  /*Ri = 200.0;         // 200 Ohm x cm = 0.2 K Ohms x cm, Tesis Catalina, page 99 y 115 , Resistividad no resistencia
-  Rix = 0.2;
-  Riy = 0.2;
-
-  // External concentration
-  Ko = 5.4;           // extracellular K concentration [mM]
-  Nao = 140.0;        // extracellular Na concentration [mM]
-  Coa = 1.8;*/          // extracellular Ca concentration [mM]
-
-  // Maximal  conductances  [nS/pF]
- /* GNa = 7.8;
-  GK1 =  0.09;
-  Gto = 0.1652;
-  GKr = 0.0294;
-  GKs = 0.129;
-  GCaL = 0.1238;
-  GbCa = 0.00113;
-  GbNa = 0.000674;*/
-
-  // Maximal currents
-  /*INaK_max = 0.6;     // Maximal INaK [pA/pF]
-  INaCa_max = 1600.0; // Maximal INaCa [pA/pF]
-  IpCa_max = 0.275;   // Maximal IpCa [pA/pF]
-  Kq10 = 3.0;         // Temperature scaling factor for IKur and Ito kinetics
-  gamma = 0.35;*/      // Voltage dependance parameter for INaCa
-
-  // Half-saturation constant for currents
-  /*KmNai = 10.0;       // Nai half-saturation constant of INaK [mM]
-  KmKo = 1.5;         // Ko half-saturation constant of INaK [mM]
-  KmNa = 87.5;        // Nao half-saturation constant of INaCa [mM]
-  KmCa = 1.38;        // Cao half-saturation constant of INaCa
-
-  ksat = 0.1;*/         // Saturation factor for INaCa
-
-
-  // Ion Valences
-/*  zna = 1.0;          // Na valence
-  zk = 1.0;           // K valence
-  zca = 2.0;*/          // Ca valence
-
-  // Myoplasmic Ca Ion Concentration Changes
-  /*Csqn_max = 10.0;    // Total calsequestrin concentration in SR release compartment [mM]
-  Km_csqn = 0.8;      // Ca_rel half-saturation constant of Iup [mM]
-  Cmdn_max = 0.050;   // Total calmodulin concentration in myoplasm [mM]
-  Trpn_max = 0.070;   // Total troponin concentration in myoplasm [mM]
-  kmcmdn = 0.00238;   // Cai half-saturation constant for calmodulin [mM]
-  Kmtrpn = 0.0005;    // Cai half-saturation constant for troponin [mM]
-  Iup_max = 0.005;*/    // Maximal Iup [mM/mS]*/
-
   // future function "initial conditions"
   V = -8.12e1;          // mV
   h = 9.65e-1;
@@ -118,7 +51,7 @@ db Cell::getItot(db dt){
 __device__ __host__
 void Cell::compute_currents(){
   ECa = ((R*TEMP)/(zca*F)) * log(COA/Cai);
-  ENa = ((R*TEMP)/(zna*F)) * log(Nao/Nai);
+  ENa = ((R*TEMP)/(zna*F)) * log(NAO/Nai);
   EK = ((R*TEMP)/(zk*F)) * log(KO/Ki);
   ENC = (F*V) / (R*TEMP);
 
@@ -266,7 +199,7 @@ void Cell::comp_ical (){
 /* Calculates Na-K Pump Current */
 __device__ __host__
 void Cell::comp_inak (){
-  db sigma = (exp(Nao/67.3)-1.0)/7.0;                                     // Equation 59
+  db sigma = (exp(NAO/67.3)-1.0)/7.0;                                     // Equation 59
   db fNaK= 1.0/(1.0+0.1245*exp(-0.1*ENC)+0.0365*sigma*exp(-ENC));         // Equation 58
   INaK = CAP*INAK_MAX*fNaK*(1.0/(1.0+pow((KmNai/Nai),1.5)))*(KO/(KO+KmKo));   // Equation 57
 }
@@ -276,8 +209,8 @@ __device__ __host__
 void Cell::comp_inaca (){
   db phif = exp(GAMMA*ENC);
   db phir = exp((GAMMA-1.0)*ENC);
-  db nmr  = (phif*pow(Nai,3.0)*COA)-(phir*pow(Nao,3.0)*Cai);
-  db dnm  = (pow(KmNa,3.0)+pow(Nao,3.0))*(KmCa+COA)*(1.0+(ksat*phir));
+  db nmr  = (phif*pow(Nai,3.0)*COA)-(phir*pow(NAO,3.0)*Cai);
+  db dnm  = (pow(KmNa,3.0)+pow(NAO,3.0))*(KmCa+COA)*(1.0+(ksat*phir));
   INaca = CAP*INACA_MAX*(nmr/dnm);                                             // Equation 60
 }
 
