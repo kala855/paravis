@@ -41,8 +41,8 @@ __host__ __device__ Cell::Cell(){
 __device__ __host__
 db Cell::getItot(db dt){
   compute_currents();
-  /*compute_concentrations(dt);
-  compute_gates(dt);*/
+  compute_concentrations(dt);
+  compute_gates(dt);
   return Itot;
 }
 
@@ -77,9 +77,9 @@ void Cell::compute_concentrations(db dt){
 
   //////////DUDAS SOBRE USO///////////////////////
   // Calsequestrin concentration
-  db Ca_csqn = CSQN_MAX*(Ca_rel/(Ca_rel+KM_CSQN));    // Equation 75, Uso?
-  db Ca_Trpn = TRPN_MAX*(Cai/(Cai+KMTRPN));           // Equation 74, no se usa
-  db Ca_Cmdn = CMDN_MAX*(Cai/(Cai+KMCMDN));           // Equation 73, no se usa
+  //db Ca_csqn = CSQN_MAX*(Ca_rel/(Ca_rel+KM_CSQN));    // Equation 75, Uso?
+  //db Ca_Trpn = TRPN_MAX*(Cai/(Cai+KMTRPN));           // Equation 74, no se usa
+  //db Ca_Cmdn = CMDN_MAX*(Cai/(Cai+KMCMDN));           // Equation 73, no se usa
   //////////////////////////////////////////////////
 
  comp_iupleak();      // Ca leak current by the NSR
@@ -97,33 +97,33 @@ void Cell::compute_concentrations(db dt){
 __device__ __host__
 void Cell::conc_nai(db dt){
   // Compute Intracellular Nai Concentration
-  db invViF  = 1.0/(VI*F);
-  db totINa = INa+IbNa+3.0*(INaK+INaca);
-  db dNai = dt*(-totINa*invViF);                       // Equation 21
-  Nai = dNai + Nai;
+  //db invViF  = 1.0/(VI*F);
+  //db totINa = INa+IbNa+3.0*(INaK+INaca);
+  //db dNai = dt*(-totINa*invViF);                       // Equation 21
+  Nai = DNAI + Nai;
 }
 
 __device__ __host__
 void Cell::conc_ki(db dt){
   // Compute Intracellular Ki Concentration
   // En el paper aparece en IbK, pero no esta.
-  db invViF  = 1.0/(VI*F);
-  db totIK = 2.0*INaK-IK1-Ito-IKur-IKr-IKs;//-IbK;
-  db dKi = dt*(totIK*invViF);                          // Equation 22
-  Ki = dKi + Ki;
+  //db invViF  = 1.0/(VI*F);
+  //db totIK = 2.0*INaK-IK1-Ito-IKur-IKr-IKs;//-IbK;
+ // db dKi = dt*(totIK*invViF);                          // Equation 22
+  Ki = DKI + Ki;
 }
 
 __device__ __host__
 void Cell::conc_cai(db dt){
   // Compute Intracellular Cai Concentration
-  db invViF2 = 1.0 / (2.0*VI*F);
+  /*db invViF2 = 1.0 / (2.0*VI*F);
   db b1_left = ((2.0*INaca -IpCa-ICal-IbCa)*invViF2);         // left Ecuation 24
   db b1_right = ((VUP*(Iup_leak-Iup)+(Irel*VREL))/VI);        // right Ecuation 24
   db b1cai = b1_left + b1_right;                              // Ecuation 24
   db b2_left=1.0+((TRPN_MAX*KMTRPN)/pow((Cai + KMTRPN),2.0)); // left Ecuation 25
   db b2_right= (CMDN_MAX*KMCMDN)/pow((Cai + KMCMDN),2.0);     // right Ecuation 25
   db b2cai = b2_left + b2_right;                              // Ecuation 25
-  db dcai = dt*(b1cai/b2cai);                                 // Equation 23
+  db dcai = dt*(b1cai/b2cai);                                 // Equation 23*/
 
   Cai = dcai + Cai;
 }
@@ -131,14 +131,14 @@ void Cell::conc_cai(db dt){
 __device__ __host__
 void Cell::conc_ca_up(db dt){
   // Compute Ca2+ concentration in uptake compartment Ca_up //nsr
-  db dCa_up = dt*(Iup - Iup_leak - Itr*(VREL/VUP));            // Equation 26
+  //db dCa_up = dt*(Iup - Iup_leak - Itr*(VREL/VUP));            // Equation 26
   Ca_up = dCa_up + Ca_up;
 }
 
 __device__ __host__
 void Cell::conc_ca_rel(db dt){
   // Compute Ca2+ concentration release compartment Ca_rel //jsr
-  db dCa_rel = dt*(Itr-Irel)/(1.0+(CSQN_MAX*KM_CSQN)/pow((Ca_rel+KM_CSQN),2.0));  // Equation 27
+  //db dCa_rel = dt*(Itr-Irel)/(1.0+(CSQN_MAX*KM_CSQN)/pow((Ca_rel+KM_CSQN),2.0));  // Equation 27
   Ca_rel = dCa_rel + Ca_rel;
 }
 
@@ -173,7 +173,7 @@ void Cell::comp_ito (){
 /* Calculates Ultra-Rapidly activation K Current IKur*/
 __device__ __host__
 void Cell::comp_ikur (){
-  db GKur = 0.005+(0.05/(1.0+exp(-(V-15.0)/13.0)));             // Equation 42
+  //db GKur = 0.005+(0.05/(1.0+exp(-(V-15.0)/13.0)));             // Equation 42
   IKur = CAP*GKur*pow(ua,3.0)*ui*(V-EK);                        // Equation 41
 }
 
@@ -199,19 +199,19 @@ void Cell::comp_ical (){
 /* Calculates Na-K Pump Current */
 __device__ __host__
 void Cell::comp_inak (){
-  db sigma = (exp(NAO/67.3)-1.0)/7.0;                                     // Equation 59
-  db fNaK= 1.0/(1.0+0.1245*exp(-0.1*ENC)+0.0365*sigma*exp(-ENC));         // Equation 58
-  INaK = CAP*INAK_MAX*fNaK*(1.0/(1.0+pow((KmNai/Nai),1.5)))*(KO/(KO+KmKo));   // Equation 57
+  //db sigma = (exp(NAO/67.3)-1.0)/7.0;                                     // Equation 59
+  //db fNaK= 1.0/(1.0+0.1245*exp(-0.1*ENC)+0.0365*sigma*exp(-ENC));         // Equation 58
+  INaK = CAP*INAK_MAX*FNAK*(1.0/(1.0+pow((KmNai/Nai),1.5)))*(KO/(KO+KmKo));   // Equation 57
 }
 
 /* Calculates Na-Ca Exchanger Current */
 __device__ __host__
 void Cell::comp_inaca (){
-  db phif = exp(GAMMA*ENC);
-  db phir = exp((GAMMA-1.0)*ENC);
-  db nmr  = (phif*pow(Nai,3.0)*COA)-(phir*pow(NAO,3.0)*Cai);
-  db dnm  = (pow(KmNa,3.0)+pow(NAO,3.0))*(KmCa+COA)*(1.0+(ksat*phir));
-  INaca = CAP*INACA_MAX*(nmr/dnm);                                             // Equation 60
+  //db phif = exp(GAMMA*ENC);
+  //db phir = exp((GAMMA-1.0)*ENC);
+ // db nmr  = (PHIF*pow(Nai,3.0)*COA)-(PHIR*pow(NAO,3.0)*Cai);
+  //db dnm  = (pow(KmNa,3.0)+pow(NAO,3.0))*(KmCa+COA)*(1.0+(ksat*PHIR));
+  INaca = CAP*INACA_MAX*(NMR/DNM);                                             // Equation 60
 }
 
 /* Calculates Sarcolemmal Ca Pump Current */
@@ -235,38 +235,38 @@ void Cell::comp_ibna (){
 // Compute Ca2+ Release Current From JSR Irel
 __device__ __host__
 void Cell::comp_irel(){
-  db krel = 30.0;  // Rate constant of Ca release from JSR due to overload (ms^-1)
-  Irel = krel*pow(u,2.0)*v*w*(Ca_rel-Cai);   // Equation 64
+  //db krel = 30.0;  // Rate constant of Ca release from JSR due to overload (ms^-1)
+  Irel = 30.0*pow(u,2.0)*v*w*(Ca_rel-Cai);   // Equation 64
 }
 
 // Compute Transfer Current From NSR to JSR Itr
 __device__ __host__
 void Cell::comp_itr(){
-  db tautr = 180.0;               // Time constant of Ca transfer from NSR to JSR(ms) ecu 69
-  Itr = (Ca_up - Ca_rel)/tautr;   // Equation 69 for dCa_rel, dCa_up
+  //db tautr = 180.0;               // Time constant of Ca transfer from NSR to JSR(ms) ecu 69
+  Itr = (Ca_up - Ca_rel)/180.0;   // Equation 69 for dCa_rel, dCa_up
 }
 
 // Compute Ca2+ Uptake Current by NSR Iup
 __device__ __host__
 void Cell::comp_iup(){
-  db Kup= 0.00092;                   // Half-saturation concentration of iup (mM)
-  Iup = IUP_MAX / (1.0+(Kup/Cai));   // Equation 71
+  //db Kup= 0.00092;                   // Half-saturation concentration of iup (mM)
+  Iup = IUP_MAX / (1.0+(0.00092/Cai));   // Equation 71
 }
 
 // Compute Ca2+ Leak Current by the NSR Iup_leak
 __device__ __host__
 void Cell::comp_iupleak(){
-  db Ca_up_max = 15.0;                      //  Max. [Ca] in NSR (m)M
-  Iup_leak = (Ca_up/Ca_up_max)*IUP_MAX;     // Equation 72
+  //db Ca_up_max = 15.0;                      //  Max. [Ca] in NSR (m)M
+  Iup_leak = (Ca_up/15.0)*IUP_MAX;     // Equation 72
 }
 
 __device__ __host__
 void Cell::comp_itot(){
-  db IK,INat,ICa;
-  IK = IKr + IKs + IK1 + IKur;
-  INat = INa + IbNa + INaK + INaca;
-  ICa = ICal + IbCa + IpCa;
-  Itot = IK + INat + ICa + Ito;
+  //db IK,INat,ICa;
+  //IK = IKr + IKs + IK1 + IKur;
+  //INat = INa + IbNa + INaK + INaca;
+  //ICa = ICal + IbCa + IpCa;
+  Itot =  IKr + IKs + IK1 + IKur + INa + IbNa + INaK + INaca + ICal + IbCa + IpCa + Ito;
 }
 
 __device__ __host__
@@ -284,15 +284,16 @@ void Cell::compute_gates(db dt){
 __device__ __host__
 void Cell::gates_irel(db dt){
   // Gates for Irel Current
-  db fn = (VREL * (10e-12) * Irel) -((5.0e-13/F) * (0.5*ICal-0.2*INaca));   // Equation 68
-  db tauu = 8.0;                                                            // Equation 65
-  db u_inf = 1.0/(1.0+exp(-(fn-3.4175e-13)/13.67e-16));
-  db tauv = 1.91+(2.09/(1.0+exp(-(fn-3.4175e-13)/13.67e-16)));              // Equation 66
-  db v_inf = 1.0-(1.0/(1.0+exp(-(fn-6.835e-14)/13.67e-16)));
+//db fn = (VREL * (10e-12) * Irel) -((5.0e-13/F) * (0.5*ICal-0.2*INaca));   // Equation 68
+  //db tauu = 8.0;                                                            // Equation 65
+  /*db u_inf = 1.0/(1.0+exp(-(FN-3.4175e-13)/13.67e-16));
+  db tauv = 1.91+(2.09/(1.0+exp(-(FN-3.4175e-13)/13.67e-16)));              // Equation 66
+  db v_inf = 1.0-(1.0/(1.0+exp(-(FN-6.835e-14)/13.67e-16)));
   db tauw = 6.0*(1.0-exp(-(V-7.9)/5.0))/((1.0+0.3*exp(-(V-7.9)/5.0))*(V-7.9));
-  db w_inf = 1.0-(1.0/(1.0+exp(-(V-40.0)/17.0)));                           // Equation 67
+  db w_inf = 1.0-(1.0/(1.0+exp(-(V-40.0)/17.0)));                           // Equation 67*/
   //Compute Gates
-  u = u_inf+(u-u_inf)*exp(-dt/tauu);   // Activation gate u of Ca release from jsr
+
+    u = u_inf+(u-u_inf)*exp(-dt/8.0);   // Activation gate u of Ca release from jsr
   v = v_inf+(v-v_inf)*exp(-dt/tauv);   // Activation gate v of Ca release from jsr
   w = w_inf+(w-w_inf)*exp(-dt/tauw);   // Inactivation gate w of Ca release from jsr
 }
@@ -300,11 +301,10 @@ void Cell::gates_irel(db dt){
 __device__ __host__
 void Cell::gates_ina(db dt){
   // Gates: m,h,j.
-  db alpha_m,beta_m,alpha_h,beta_h,alpha_j,beta_j,tau_m, m_inf, tau_h;
-  db h_inf, tau_j, j_inf;
+  db alpha_m,alpha_h,beta_h,alpha_j,beta_j;
 
   alpha_m = ((V == -47.13)? 3.2 : 0.32*(V+47.13)/(1.0-exp(-0.1*(V+47.13))));  // Equation 30
-  beta_m = 0.08 * exp(-V/11.0);
+ // beta_m = 0.08 * exp(-V/11.0);
 
   if (V < -40.0){ // Equation 31,32,33
     alpha_h = 0.135 * exp(-(80.0+V)/6.8);
@@ -318,12 +318,12 @@ void Cell::gates_ina(db dt){
     beta_j = (0.3 * exp(-2.535e-7*V))/(1.0+exp(-0.1*(V+32.0)));
   }
 
-  tau_m = (1.0 / (alpha_m+beta_m));          // Equation 34
+  /*tau_m = (1.0 / (alpha_m+beta_m));          // Equation 34
   m_inf = alpha_m * tau_m;
   tau_h = (1.0 / (alpha_h+beta_h));
   h_inf = alpha_h * tau_h;
   tau_j = (1.0 / (alpha_j+beta_j));
-  j_inf= alpha_j*tau_j;
+  j_inf= alpha_j*tau_j;*/
 
   // Update gates
   m = m_inf +(m-m_inf)*exp(-dt/tau_m);       // Equation 77
@@ -334,10 +334,10 @@ void Cell::gates_ina(db dt){
 __device__ __host__
 void Cell::gates_ito(db dt){
   //ACTUALIZO COMPUERTAS
-  db alpha_oa, beta_oa,tau_oa,oa_inf,alpha_oi,beta_oi,tau_oi, oi_inf;
+  //db alpha_oa, beta_oa,tau_oa,oa_inf,alpha_oi,beta_oi,tau_oi, oi_inf;
 
   // Gates: oa,oi.
-  alpha_oa = 0.65/(exp(-(V+10.0)/8.5)+exp(-(V-30.0)/59.0));   // Equation 37
+  /*alpha_oa = 0.65/(exp(-(V+10.0)/8.5)+exp(-(V-30.0)/59.0));   // Equation 37
   beta_oa = 0.65/(2.5+exp((V+82.0)/17.0));
   tau_oa = 1.0/((alpha_oa+beta_oa)*KQ10);                     // Equation 38
   oa_inf = 1.0/(1.0+exp(-(V+20.47)/17.54));
@@ -345,7 +345,7 @@ void Cell::gates_ito(db dt){
   alpha_oi= 1.0/(18.53+exp((V+113.7)/10.95));                 // Equation 39
   beta_oi = 1.0/(35.56+exp(-(V+1.26)/7.44));
   tau_oi = 1.0/((alpha_oi+beta_oi)*KQ10);                     // Equation 40
-  oi_inf = 1.0/(1.0+exp((V+43.1)/5.3));
+  oi_inf = 1.0/(1.0+exp((V+43.1)/5.3));*/
 
   // Updates gates
   oa = oa_inf+(oa-oa_inf)*exp(-dt/tau_oa);                    // Equation 77
@@ -355,11 +355,11 @@ void Cell::gates_ito(db dt){
 __device__ __host__
 void Cell::gates_ikur(db dt){
   //ACTUALIZO COMPUERTAS
-  db alpha_ua, beta_ua,tau_ua,ua_inf,alpha_ui,beta_ui, tau_ui;
-  db ui_inf,GKur;
+  /*db alpha_ua, beta_ua,tau_ua,ua_inf,alpha_ui,beta_ui, tau_ui;
+  db ui_inf;*/
 
   // Gates: uo,ui.
-  alpha_ua = 0.65/(exp(-(V+10.0)/8.5)+exp(-(V-30.0)/59.0));   // Equation 43
+/*  alpha_ua = 0.65/(exp(-(V+10.0)/8.5)+exp(-(V-30.0)/59.0));   // Equation 43
   beta_ua = 0.65/(2.5+exp((V+82.0)/17.0));
   tau_ua = 1.0/((alpha_ua+beta_ua)*KQ10);                     // Equation 44
   ua_inf = 1.0/(1.0+exp(-(V+30.3)/9.6));
@@ -367,7 +367,7 @@ void Cell::gates_ikur(db dt){
   alpha_ui = 1.0/(21.0+exp(-(V-185.0)/28.0));                 // Equation 45
   beta_ui = exp((V-158.0)/16.0);
   tau_ui = 1.0/((alpha_ui+beta_ui)*KQ10);                     // Equation 46
-  ui_inf = 1.0/(1.0+exp((V-99.45)/27.48));
+  ui_inf = 1.0/(1.0+exp((V-99.45)/27.48));*/
 
   // Updates gates
   ua = ua_inf+(ua-ua_inf)*exp(-dt/tau_ua);
@@ -377,12 +377,12 @@ void Cell::gates_ikur(db dt){
 __device__ __host__
 void Cell::gates_ikr(db dt){
   //ACTUALIZO COMPUERTAS
-  db alpha_xr, beta_xr, tau_xr, xr_inf;
+  //db alpha_xr, beta_xr, tau_xr, xr_inf;
 
-  alpha_xr = 0.0003 * (( V + 14.1)/(1.0-exp(-(V + 14.1)/5.0)));
+ /* alpha_xr = 0.0003 * (( V + 14.1)/(1.0-exp(-(V + 14.1)/5.0)));
   beta_xr = 7.3898e-5*((V -3.3328)/(exp((V-3.3328)/5.1237)-1.0));
   tau_xr = 1.0 / (alpha_xr + beta_xr);
-  xr_inf = 1.0 / (1.0 + exp(-(V + 14.1) / 6.5) );
+  xr_inf = 1.0 / (1.0 + exp(-(V + 14.1) / 6.5) );*/
 
   xr = xr_inf + (xr-xr_inf)*exp(-dt/tau_xr);
 
@@ -391,13 +391,13 @@ void Cell::gates_ikr(db dt){
 __device__ __host__
 void Cell::gates_iks(db dt){
   //ACTUALIZO COMPUERTAS
-  db alpha_xs,beta_xs,tau_xs,xs_inf;
+  /*db alpha_xs,beta_xs,tau_xs,xs_inf;*/
 
   // Gate: xs
-  alpha_xs = 4.0e-5 * ((V-19.9) / (1.0-exp(-(V-19.9)/17.0)));    // Equation 51
+/*  alpha_xs = 4.0e-5 * ((V-19.9) / (1.0-exp(-(V-19.9)/17.0)));    // Equation 51
   beta_xs = 3.5e-5 * ((V-19.9) / (exp((V-19.9)/9.0)-1.0));
   tau_xs = 0.5 / (alpha_xs+beta_xs);                             // Equation 52
-  xs_inf = pow(1.0 + (exp(-(V-19.9)/12.7)),-0.5);
+  xs_inf = pow(1.0 + (exp(-(V-19.9)/12.7)),-0.5);*/
 
   // Update gate
   xs = xs_inf+(xs-xs_inf)*exp(-dt/tau_xs);                       // Equation 77
@@ -406,14 +406,14 @@ void Cell::gates_iks(db dt){
 __device__ __host__
 void Cell::gates_ical(db dt){
   //ACTUALIZO COMPUERTAS
-  db d_inf, tau_d, f_inf, tau_f, fca_inf, tau_fca;
+  //db d_inf, tau_d, f_inf, tau_f, fca_inf, tau_fca;
 
-  tau_d = (1.0 - exp((V+10.0)/-6.24))/ (0.035*(V+10.0)*(1.0+exp((V+10.0)/-6.24))); //Equation 54
+  /*tau_d = (1.0 - exp((V+10.0)/-6.24))/ (0.035*(V+10.0)*(1.0+exp((V+10.0)/-6.24))); //Equation 54
   d_inf = 1.0/(1.0+exp((V+10.0)/-8.0));                        // Equation 54
   tau_f = 9.0/(0.0197*exp((-1.0)*pow(0.0337,2.0)*pow((V+10.0),2.0))+0.02);
   f_inf = 1.0/(1.0+exp((V+28.0)/6.9));                         // Equation 55
   fca_inf = 1.0/(1.0+(Cai/0.00035));                           // Equation 56
-  tau_fca = 2.0;
+  tau_fca = 2.0;*/
   d = d_inf + (d - d_inf)*exp(-dt/tau_d);
   f = f_inf + (f - f_inf)*exp(-dt/tau_f);
   fca = fca_inf + (fca - fca_inf)*exp(-dt/tau_fca);
