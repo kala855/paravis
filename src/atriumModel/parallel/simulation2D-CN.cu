@@ -87,7 +87,7 @@ int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
 }
 
 
-__global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db CurrStim, db aCm,
+__global__ void d_update_B(int Nx, int Ny, db dt, db Sx, db Sy, db Istim, db CurrStim, db aCm,
         db areaT, int nodes, int flag_stm, db begin_cell, Cell *cells ,db *B, db *prevV){
     int node = (blockIdx.x*blockDim.x + threadIdx.x)+(Nx+3);
     if(node<(nodes-(Nx+3))){
@@ -103,7 +103,7 @@ __global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db Cu
         j = node % (Nx+2);        //pos in x -> cols
         i = node / (Nx+2);        //pos in y -> rows
         // Estimulando toda una fila de celulas
-        //printf("j=%d\n",j);
+       // printf("flag_stm=%d\n",flag_stm);
         if(!flag_stm && (node >= begin_cell && node <= begin_cell + Nx -1)){
             Istim = CurrStim;
         }
@@ -114,9 +114,9 @@ __global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db Cu
         if(j>0 && j<(Nx+1)){
             int t = node-(Nx+3);
             pos = ((t/(Nx+2)) *Nx)+j - 1;
-            //printf("%lf\n",prevV[prev]);
+           // printf("%lf\n",prevV[prev]);
             Iion = cells[node].getItot(dt);
-            //printf("ECa=%lf\tENa=%lf\tEK=%lf\tENC=%lf\n", cells[node].ECa,cells[node].ENa,cells[node].EK,cells[node].ENC);
+            //printf("Iion=%lf\n",Iion);
             if(j==1 && i==1){                           //bottom-left
                 BC = Sx * prevV[prev] + Sy * prevV[lower];
             }else if(i==1 && j==Nx){                    //bottom-right
@@ -137,9 +137,9 @@ __global__ void d_update_B(int Nx, int Ny, int dt, db Sx, db Sy, db Istim, db Cu
 
             rhs = Sx*prevV[prev] + (1.0-2.0*Sx-2.0*Sy)* prevV[node] + Sx*prevV[next] + Sy*prevV[lower] + Sy*prevV[upper];
             Jion = (Iion + Istim)/areaT;
+            //printf("B[%d] = %lf\n", pos,B[pos]);
             B[pos] = rhs + BC - (Jion*dt/aCm);
             //printf("j = %d \t node = %d \t node-(Nx+3) = %d \t pos = %d\n", j, node, node-(Nx+3), pos);
-           // printf("B[%d] = %lf\n", pos,B[pos]);
         }
     }
 }
@@ -235,9 +235,9 @@ int main(){
   vector<Cell> cells(nodes);
 
 
-  db areaT = PINUM*pow(RADIUSCELL,2);  // Capacitive membrane area
-  db aCm = CAP / areaT;             // Capacitance per unit area pF/cm^2
-  Dx = Dy = RADIUSCELL / (2.0*RI*aCm*1e-9); //D = 0.00217147 cm^2/ms
+  db areaT = cells[0].pi*pow(cells[0].a,2);  // Capacitive membrane area
+  db aCm = cells[0].Cap / areaT;             // Capacitance per unit area pF/cm^2
+  Dx = Dy = cells[0].a / (2.0*cells[0].Ri*aCm*1e-9); //D = 0.00217147 cm^2/ms
 
   Sx = (dt*Dx)/(2.0*pow(deltaX,2));
   Sy = (dt*Dy)/(2.0*pow(deltaY,2));
@@ -267,7 +267,7 @@ int main(){
   gpuErrchk(cudaPeekAtLastError());
   gpuErrchk(cudaStreamSynchronize(af_stream));*/
 
-  int blockSize = 1024;
+  int blockSize = 32;
   dim3 dimGrid(ceil(float(nodes)/float(blockSize)),1,1);
   dim3 dimBlock(blockSize,1,1);
 
@@ -313,20 +313,21 @@ int main(){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
-  nstp=0;  // only for one iteration
+  //nstp=500;  // only for one iteration
 
   for(int k=0; k<nstp+2; k++,t+=dt){ //each time
+    pos = 0;
     if(t>=tbegin && t<=tend){
-      flag_stm = 0.0;
+      flag_stm = 0;
     }else{
-      if(flag_stm==0.0){
+      if(flag_stm==0){
         if(cont_repeat < nrepeat){
           tbegin=tbegin+BCL; //se establece el tiempo del próximo estimulo
         }else if(cont_repeat == nrepeat) tbegin=tbegin+CI;
 
         cont_repeat++;
         tend=tbegin+dtstim;
-        flag_stm = 1.0;
+        flag_stm = 1;
       }
     }
 
@@ -334,26 +335,28 @@ int main(){
             flag_stm,begin_cell,d_cells,d_B,d_prevV);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaStreamSynchronize(af_stream));
+    gpuErrchk(cudaDeviceSynchronize());
 
-    //af::array afB(nodesA,d_B,afDevice);
+
     afB.write(d_B,nodesA*sizeof(db),afDevice);
 
     ////Array Fire Solver
     //afX = af::solve(afA,afB);
     afX = af::solveLU(afALU, pivot, afB);
 
-    //printf("hi\n");
     d_x = afX.device<db>();
     d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaStreamSynchronize(af_stream));
+    gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
+    //af_print(afX);
     //copy_voltage(cells,afX,d_prevV,Nx,nodesA);
     /*if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat
         create_voltage_file(t,afX,nodesA,k);*/
-
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);
-  af_print(afX);
+  create_voltage_file(t,afX,nodesA,nstp+2);
+  //af_print(afX);
   return 0;
 }
