@@ -120,9 +120,6 @@ void Cell::compute_currents(){
   EK = ((R*T)/(zk*F)) * log(Ko/Ki);
   ENC = (F*V) / (R*T);
 
-  //printf("ECa = %lf\tENa = %lf\tEK = %lf\tENC = %lf\n",ECa, ENa, EK, ENC);
-
-
   comp_ical ();     // Calculates Currents through L-Type Ca Channel
   comp_inaca ();    // Calculates Na-Ca Exchanger Current
   comp_ibna ();     // Calculates Na Background Current
@@ -192,9 +189,6 @@ void Cell::conc_cai(db dt){
   db b2_right= (Cmdn_max*kmcmdn)/pow((Cai + kmcmdn),2.0);     // right Ecuation 25
   db b2cai = b2_left + b2_right;                              // Ecuation 25
   db dcai = dt*(b1cai/b2cai);                                 // Equation 23
-
-  //printf("Cai=%lf\n",Cai);
-
 
   Cai = dcai + Cai;
 }
