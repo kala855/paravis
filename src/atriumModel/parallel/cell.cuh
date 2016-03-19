@@ -5,7 +5,7 @@
 class Cell{
 public:
     //------------    parameters   ----------------
-
+    db testChange;
     //--- constants -----
     db R;           // universal gas constant [j/kmol*k);
     db T;           // temperature [k);

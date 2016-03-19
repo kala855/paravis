@@ -116,7 +116,7 @@ __global__ void d_update_B(int Nx, int Ny, db dt, db Sx, db Sy, db Istim, db Cur
             pos = ((t/(Nx+2)) *Nx)+j - 1;
            // printf("%lf\n",prevV[prev]);
             Iion = cells[node].getItot(dt);
-            //printf("Iion=%lf\n",Iion);
+            //printf("node=%d\tIion=%lf\n",node,Iion);
             if(j==1 && i==1){                           //bottom-left
                 BC = Sx * prevV[prev] + Sy * prevV[lower];
             }else if(i==1 && j==Nx){                    //bottom-right
@@ -144,33 +144,27 @@ __global__ void d_update_B(int Nx, int Ny, db dt, db Sx, db Sy, db Istim, db Cur
     }
 }
 
+__global__ void d_copy_voltage_test(Cell *cells, db *X, db *prevV, int Nx, int size){
+    int idx = Nx;
+    for(int i=0; i<size; i++){
+        idx = (i%Nx==0)? idx+3: idx+1;
+        cells[idx].V = X[i];
+        prevV[idx] = X[i];
+       // printf("i=%d,idx=%d\n",i,idx);
+    }
+}
 
 
 __global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size){
     int i = blockIdx.x*blockDim.x+threadIdx.x;
     if(i<size){
-        int idx = Nx;
+        int idx = i+ Nx;
         idx = (i%Nx==0)? idx+3: idx+1;
         cells[idx].V = X[i];
         prevV[idx] = X[i];
+        printf("i=%d,idx=%d\n",i,idx);
     }
 }
-
-int copy_voltage(vector<Cell> &cells,af::array &X, af::array &prevV, int Nx, int size){
-    int idx = Nx;
-    for (int i = 0; i < size; i++) {
-        idx = (i%Nx==0)? idx+3 : idx+1;
-        cells[idx].V = X(i).host<double>()[0];
-        prevV(idx) = X(i);
-    }
-    return 0;
-}
-
-__global__ void testeando(Cell *cells,int nodes){
-    //cells[0].init();
-    cells = new Cell[nodes]();
-}
-
 
 
 __global__ void init_d_prevv(int nodes, db *d_prevV){
@@ -188,7 +182,7 @@ __global__ void init_d_B(int nodesA, db *d_B){
 int main(){
   db deltaX,deltaY;
   int Nx,Ny,nodes,nodesA;
-  db Dx,Dy,Gx,Gy;
+  db Dx,Dy;
   db Sx,Sy;
   db nrepeat;     // numero de ciclos
   db tbegin;      // tiempo de inicio del primer estímulo
@@ -197,14 +191,12 @@ int main(){
   db dt;          // paso de tiempo
   db dtstim;      // duracion del estimulo
   db CurrStim;    // corriente de estimulo
-  db cell_type;   // tipo de celula
   int nstp_prn;   // frecuencia con la que se imprimen los resultados
   db tend;
   db nstp;
-  int cell_to_stim;
-  int upper,lower,prev,next, pos,i,j;
-  db Iion;
-  db Jion;
+  //int cell_to_stim;
+  //db Iion;
+  //db Jion;
   db cont_repeat = 0;
   db t = 0.0;
   int flag_stm = 1;
@@ -216,13 +208,12 @@ int main(){
   CI = 0;
   dtstim = 2;
   CurrStim = -8000;
-  cell_type = 1;
   nstp_prn = 50;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 10;
-  Ny = 10;
-  cell_to_stim = 47;   // 70 in plot
+  Nx = 30;
+  Ny = 30;
+  //cell_to_stim = 47;   // 70 in plot
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
@@ -238,6 +229,9 @@ int main(){
   db areaT = cells[0].pi*pow(cells[0].a,2);  // Capacitive membrane area
   db aCm = cells[0].Cap / areaT;             // Capacitance per unit area pF/cm^2
   Dx = Dy = cells[0].a / (2.0*cells[0].Ri*aCm*1e-9); //D = 0.00217147 cm^2/ms
+
+  cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
+
 
   Sx = (dt*Dx)/(2.0*pow(deltaX,2));
   Sy = (dt*Dy)/(2.0*pow(deltaY,2));
@@ -276,9 +270,9 @@ int main(){
 
  // af::info();
 
-  double *A_mem = (double*)malloc(nodesA*nodesA*sizeof(double));
-  double *B_mem = (double*)malloc(nodesA*sizeof(double));
-  double *X_mem = (double*)malloc(nodesA*sizeof(double));
+  double *A_mem = (double*)malloc(nodesA*nodesA*sizeof(db));
+  double *B_mem = (double*)malloc(nodesA*sizeof(db));
+  double *X_mem = (double*)malloc(nodesA*sizeof(db));
 
   A_mem = A.memptr();
   B_mem = B.memptr();
@@ -299,10 +293,12 @@ int main(){
   init_d_prevv<<<dimGrid,dimBlock,0,af_stream>>>(nodes, d_prevV);
   gpuErrchk(cudaPeekAtLastError());
   gpuErrchk(cudaStreamSynchronize(af_stream));
+  gpuErrchk(cudaDeviceSynchronize());
 
   init_d_B<<<dimGridCopyV,dimBlock,0,af_stream>>>(nodesA, d_B);
   gpuErrchk(cudaPeekAtLastError());
   gpuErrchk(cudaStreamSynchronize(af_stream));
+  gpuErrchk(cudaDeviceSynchronize());
 
   af::array afALU, pivot;
   af::lu(afALU,pivot,afA);
@@ -313,10 +309,9 @@ int main(){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
-  //nstp=500;  // only for one iteration
+  //nstp=-1;  // only for one iteration
 
   for(int k=0; k<nstp+2; k++,t+=dt){ //each time
-    pos = 0;
     if(t>=tbegin && t<=tend){
       flag_stm = 0;
     }else{
@@ -331,6 +326,7 @@ int main(){
       }
     }
 
+  //  printf("\n");
     d_update_B<<<dimGrid, dimBlock,0,af_stream>>>(Nx,Ny,dt,Sx,Sy,Istim,CurrStim,aCm,areaT,nodes,
             flag_stm,begin_cell,d_cells,d_B,d_prevV);
     gpuErrchk(cudaPeekAtLastError());
@@ -345,18 +341,20 @@ int main(){
     afX = af::solveLU(afALU, pivot, afB);
 
     d_x = afX.device<db>();
-    d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
+   // d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
+    d_copy_voltage_test<<<1,1,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaStreamSynchronize(af_stream));
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
     //af_print(afX);
     //copy_voltage(cells,afX,d_prevV,Nx,nodesA);
-    /*if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat
-        create_voltage_file(t,afX,nodesA,k);*/
+    if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat*/
+    //if(k>31990&&k<32000)
+        create_voltage_file(t,afX,nodesA,k);
   }
-  cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);
-  create_voltage_file(t,afX,nodesA,nstp+2);
+  cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);
+  //create_voltage_file(t,afX,nodesA,nstp+2);
   //af_print(afX);
   return 0;
 }
