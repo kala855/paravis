@@ -3,29 +3,9 @@
 #include <stdio.h>
 
 __host__ __device__ Cell::Cell(){
-  // constants
-  testChange = 0.0;
-  //R = 8.3143;         // gas constant [J/K.mmol];
-  T = 310.0;          // temperature [K];
-  F = 96.4867;        // faraday constant [C/mmol] ;
-  RTF = (R*T)/F;      // J/C
-  invRTF = 1.0/RTF;
-
-  Cap = 100.0;        // membrane capacitance [pF]
-
-  Vi = 13668.0;       // intracellular volumen [um^3]
-  Vup = 1109.52;      // SR uptake compartment volume [um^3]
-  Vrel = 96.48;       // SR release compartment volume [um^3]
 
   // Cell Geometry
-  l = 0.01;           // length of the cell [um]
-  a = 0.0008;         // radius of the cell [um]
   pi = 2*acos(0.0);
-
-  Ri = 200.0;         // 200 Ohm x cm = 0.2 K Ohms x cm, Tesis Catalina, page 99 y 115 , Resistividad no resistencia
-  Rix = 0.2;
-  Riy = 0.2;
-
   // External concentration
   Ko = 5.4;           // extracellular K concentration [mM]
   Nao = 140.0;        // extracellular Na concentration [mM]
@@ -115,10 +95,10 @@ db Cell::getItot(db dt){
 /* Calculates All Currents */
 __device__ __host__
 void Cell::compute_currents(){
-  ECa = ((R*T)/(zca*F)) * log(Coa/Cai);
-  ENa = ((R*T)/(zna*F)) * log(Nao/Nai);
-  EK = ((R*T)/(zk*F)) * log(Ko/Ki);
-  ENC = (F*V) / (R*T);
+  ECa = ((R*TEMP)/(zca*F)) * log(Coa/Cai);
+  ENa = ((R*TEMP)/(zna*F)) * log(Nao/Nai);
+  EK = ((R*TEMP)/(zk*F)) * log(Ko/Ki);
+  ENC = (F*V) / (R*TEMP);
 
   comp_ical ();     // Calculates Currents through L-Type Ca Channel
   comp_inaca ();    // Calculates Na-Ca Exchanger Current
@@ -220,45 +200,45 @@ void Cell::comp_ina(){
   // en el calculo de B por Cap.
   // Cap quedan en Siemnes, par
 
-  INa = Cap*GNa*pow(m,3.0)*h*j*(V-ENa);                         // Equation 29
+  INa = CAP*GNa*pow(m,3.0)*h*j*(V-ENa);                         // Equation 29
 }
 
 /* Calculates Time-Independant K Current IK1*/
 __device__ __host__
 void Cell::comp_ik1 (){
-  IK1 = Cap*(GK1*(V-EK)) / (1.0+exp(0.07*(V+80.0)));            // Equation 35
+  IK1 = CAP*(GK1*(V-EK)) / (1.0+exp(0.07*(V+80.0)));            // Equation 35
 }
 
 /* Calculates Transient Outward Current  Ito*/
 __device__ __host__
 void Cell::comp_ito (){
-  Ito = Cap*Gto*pow(oa,3.0)*oi*(V-EK);                          //Equation 36
+  Ito = CAP*Gto*pow(oa,3.0)*oi*(V-EK);                          //Equation 36
 }
 
 /* Calculates Ultra-Rapidly activation K Current IKur*/
 __device__ __host__
 void Cell::comp_ikur (){
   db GKur = 0.005+(0.05/(1.0+exp(-(V-15.0)/13.0)));             // Equation 42
-  IKur = Cap*GKur*pow(ua,3.0)*ui*(V-EK);                        // Equation 41
+  IKur = CAP*GKur*pow(ua,3.0)*ui*(V-EK);                        // Equation 41
 }
 
 /* Calculates Rapidly Activating K Current Ikr*/
 __device__ __host__
 void Cell::comp_ikr (){
   db r = 1.0/(1.0+exp((V+15.0)/22.4));
-  IKr = Cap*GKr*xr*r*(V-EK);                                    // Equation 47
+  IKr = CAP*GKr*xr*r*(V-EK);                                    // Equation 47
 }
 
 /* Calculates Slowly Activating K Current  IKs*/
 __device__ __host__
 void Cell::comp_iks (){
-  IKs = Cap*GKs*pow(xs,2.0)*(V-EK);                             // Equation 50
+  IKs = CAP*GKs*pow(xs,2.0)*(V-EK);                             // Equation 50
 }
 
 /* Calculates Currents through L-Type Ca Channel */
 __device__ __host__
 void Cell::comp_ical (){
-  ICal = Cap*GCaL*d*f*fca*(V-65.0);  // ICal  Equation 53
+  ICal = CAP*GCaL*d*f*fca*(V-65.0);  // ICal  Equation 53
 }
 
 /* Calculates Na-K Pump Current */
@@ -266,7 +246,7 @@ __device__ __host__
 void Cell::comp_inak (){
   db sigma = (exp(Nao/67.3)-1.0)/7.0;                                     // Equation 59
   db fNaK= 1.0/(1.0+0.1245*exp(-0.1*ENC)+0.0365*sigma*exp(-ENC));         // Equation 58
-  INaK = Cap*INaK_max*fNaK*(1.0/(1.0+pow((KmNai/Nai),1.5)))*(Ko/(Ko+KmKo));   // Equation 57
+  INaK = CAP*INaK_max*fNaK*(1.0/(1.0+pow((KmNai/Nai),1.5)))*(Ko/(Ko+KmKo));   // Equation 57
 }
 
 /* Calculates Na-Ca Exchanger Current */
@@ -276,25 +256,25 @@ void Cell::comp_inaca (){
   db phir = exp((gamma-1.0)*ENC);
   db nmr  = (phif*pow(Nai,3.0)*Coa)-(phir*pow(Nao,3.0)*Cai);
   db dnm  = (pow(KmNa,3.0)+pow(Nao,3.0))*(KmCa+Coa)*(1.0+(ksat*phir));
-  INaca = Cap*INaCa_max*(nmr/dnm);                                             // Equation 60
+  INaca = CAP*INaCa_max*(nmr/dnm);                                             // Equation 60
 }
 
 /* Calculates Sarcolemmal Ca Pump Current */
 __device__ __host__
 void Cell::comp_ipca (){
-  IpCa = Cap*(IpCa_max*Cai)/(0.0005+Cai);  // IpCa Equation 63
+  IpCa = CAP*(IpCa_max*Cai)/(0.0005+Cai);  // IpCa Equation 63
 }
 
 /* Calculates Ca Background Current */
 __device__ __host__
 void Cell::comp_ibca (){
-  IbCa = Cap*GbCa*(V-ECa);                // IbCa  Equation 61
+  IbCa = CAP*GbCa*(V-ECa);                // IbCa  Equation 61
 }
 
 /* Calculates Na Background Current ibna */
 __device__ __host__
 void Cell::comp_ibna (){
-  IbNa = Cap*GbNa*(V-ENa);                // IbNa  Equation 62
+  IbNa = CAP*GbNa*(V-ENa);                // IbNa  Equation 62
 }
 
 // Compute Ca2+ Release Current From JSR Irel
@@ -338,7 +318,6 @@ __device__ __host__
 void Cell::compute_gates(db dt){
   // Compute gates
 
-  testChange = testChange + 1.0;
   gates_irel(dt);   //u,v,w
   gates_ical(dt);   // d,f,fca
   gates_ina(dt);    // h,j,m

@@ -1,36 +1,28 @@
 //header cell class
 #include <math.h>
 #define db double
+//----------------------------parameters---------------------------------------
+#define R 8.3143                  // universal gas constant [j/kmol*k];
+#define TEMP 310.0                // temperature [k];
+#define F 96.4867                 // faraday"s constant [c/mol]
+#define RTF (R*TEMP)/F            // j/c
+#define invRTF 1.0/RTF
+#define CAP 100.0                 // capacitancia valor para courtemanche? 0.1
+//intracellular volume
+#define Vi 13668.0                // micro_m^3
+#define Vup 1109.52               // micro_m^3
+#define Vrel 96.48                // micro_m^3
+//----------------------------cell geometry--------------------------------
+#define LENGTHCELL 0.01           // cm
+#define RADIUSCELL 0.0008         // cm
 
-#define R 8.3143
+#define Ri 200.0                  // Intracell Resistance - 200 Ohm x cm = 0.2 K Ohms x cm, Tesis Catalina, page 99 y 115 Resistivida no resistencia
+#define Rix 0.2                   // Specific resistance of intracell liquid
+#define Riy 0.2                   // Specific resistance of intracell liquid
 
 class Cell{
 public:
-    //------------    parameters   ----------------
-    db testChange;
-    //--- constants -----
-   // db R;           // universal gas constant [j/kmol*k);
-    db T;           // temperature [k);
-    db F;           // faraday"s constant [c/mol) ;
-    db RTF;         // j/c
-    db invRTF;
-
-    //--- capacitance ---
-    db Cap;         // valor para courtemanche? 0.1 ;
-
-    //intracellular volume
-    db Vi;          // micro_m^3;
-    db Vup;         // micro_m^3;
-    db Vrel;        // micro_m^3;
-
-    //cell geometry
-    db l;           // length of the cell (cm);
-    db a;           // radius of the cell (cm);
     db pi;
-
-    db Ri;
-    db Rix;         // Specific resistance of intracell liquid
-    db Riy;         // Specific resistance of intracell liquid
 
     // External concentration
     db Ko;          // initial extracellular k [mm);

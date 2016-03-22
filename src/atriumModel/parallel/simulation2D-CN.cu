@@ -217,9 +217,9 @@ int main(){
   vector<Cell> cells(nodes);
 
 
-  db areaT = cells[0].pi*pow(cells[0].a,2);  // Capacitive membrane area
-  db aCm = cells[0].Cap / areaT;             // Capacitance per unit area pF/cm^2
-  Dx = Dy = cells[0].a / (2.0*cells[0].Ri*aCm*1e-9); //D = 0.00217147 cm^2/ms
+  db areaT = cells[0].pi*pow(RADIUSCELL,2);  // Capacitive membrane area
+  db aCm = CAP / areaT;             // Capacitance per unit area pF/cm^2
+  Dx = Dy = RADIUSCELL / (2.0*Ri*aCm*1e-9); //D = 0.00217147 cm^2/ms
 
   cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
 
