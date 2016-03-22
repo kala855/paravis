@@ -203,8 +203,8 @@ int main(){
   nstp_prn = 20;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 50;
-  Ny = 50;
+  Nx = 20;
+  Ny = 20;
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 

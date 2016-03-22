@@ -46,14 +46,14 @@ def createPlotSelection():
     plotSelection = []
     for i in range (0,50):
         selection = IDSelectionSource()
-        selection.IDs = [0L,3240+i]
+        selection.IDs = [0L,155+i]
         selection.FieldType = 'ROW'
         # create a new 'Plot Selection Over Time'
         plotSelection.append(PlotSelectionOverTime(Input=testParalelo,Selection=selection))
     return plotSelection
 
 def loadSource():
-    folderTam = '80x80'
+    folderTam = '20x20'
     folder='/home/john/Documents/Projects/paravis/src/atriumModel/parallel/outputdata/'+folderTam
     DIR = folder
     print len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
@@ -64,7 +64,7 @@ def loadSource():
     for file_name in list_of_files:
         names.append(folder+'/'+file_name)
         names2.append(folder+'/testParalelo'+str(i)+'.csv')
-        i = i + 50
+        i = i + 20
     return names2
 
 # find source
