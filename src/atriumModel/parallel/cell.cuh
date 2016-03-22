@@ -2,12 +2,14 @@
 #include <math.h>
 #define db double
 
+#define R 8.3143
+
 class Cell{
 public:
     //------------    parameters   ----------------
     db testChange;
     //--- constants -----
-    db R;           // universal gas constant [j/kmol*k);
+   // db R;           // universal gas constant [j/kmol*k);
     db T;           // temperature [k);
     db F;           // faraday"s constant [c/mol) ;
     db RTF;         // j/c

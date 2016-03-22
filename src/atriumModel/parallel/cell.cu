@@ -5,7 +5,7 @@
 __host__ __device__ Cell::Cell(){
   // constants
   testChange = 0.0;
-  R = 8.3143;         // gas constant [J/K.mmol];
+  //R = 8.3143;         // gas constant [J/K.mmol];
   T = 310.0;          // temperature [K];
   F = 96.4867;        // faraday constant [C/mmol] ;
   RTF = (R*T)/F;      // J/C
