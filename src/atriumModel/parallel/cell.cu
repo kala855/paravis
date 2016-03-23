@@ -6,35 +6,6 @@ __host__ __device__ Cell::Cell(){
 
   // Cell Geometry
   pi = 2*acos(0.0);
-  // Maximal currents
-  //INaK_max = 0.6;     // Maximal INaK [pA/pF]
-  //INaCa_max = 1600.0; // Maximal INaCa [pA/pF]
-  IpCa_max = 0.275;   // Maximal IpCa [pA/pF]
-  Kq10 = 3.0;         // Temperature scaling factor for IKur and Ito kinetics
-  gamma = 0.35;       // Voltage dependance parameter for INaCa
-
-  // Half-saturation constant for currents
-  KmNai = 10.0;       // Nai half-saturation constant of INaK [mM]
-  KmKo = 1.5;         // Ko half-saturation constant of INaK [mM]
-  KmNa = 87.5;        // Nao half-saturation constant of INaCa [mM]
-  KmCa = 1.38;        // Cao half-saturation constant of INaCa
-
-  ksat = 0.1;         // Saturation factor for INaCa
-
-
-  // Ion Valences
-  zna = 1.0;          // Na valence
-  zk = 1.0;           // K valence
-  zca = 2.0;          // Ca valence
-
-  // Myoplasmic Ca Ion Concentration Changes
-  Csqn_max = 10.0;    // Total calsequestrin concentration in SR release compartment [mM]
-  Km_csqn = 0.8;      // Ca_rel half-saturation constant of Iup [mM]
-  Cmdn_max = 0.050;   // Total calmodulin concentration in myoplasm [mM]
-  Trpn_max = 0.070;   // Total troponin concentration in myoplasm [mM]
-  kmcmdn = 0.00238;   // Cai half-saturation constant for calmodulin [mM]
-  Kmtrpn = 0.0005;    // Cai half-saturation constant for troponin [mM]
-  Iup_max = 0.005;    // Maximal Iup [mM/mS]
 
   // future function "initial conditions"
   V = -8.12e1;          // mV

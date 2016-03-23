@@ -38,40 +38,34 @@
 //-------------------------------Maximal Currents------------------------------
 #define INaK_max 0.6                // Max Current through Na-K pump [pA/pF]
 #define INaCa_max 1600.0            // Max. INaCa [pA/pF]
+#define IpCa_max 0.275              // Max. ca current through sarcolemmal ca pump [pA/pF]
+#define Kq10 3.0                    // Temperature Scaling factor for IKur and Ito kinetics
+#define gamma 0.35                  // Voltage dependance for INaCa
+
+//-------------------------Half-saturation constant for currents-----------------
+#define KmNai 10.0                  // Nai half-saturation constant of INaK[mm]
+#define KmKo 1.5                    // Ko half-saturation constant of
+#define KmNa 87.5                   // Nao half-saturation constant of
+#define KmCa 1.38                   // Cao half-saturation constant of
+#define ksat 0.1                    // Saturation factor for INaCa
+
+//-------------------------Ion Valences------------------------------------
+#define zna 1.0                     // Na valence
+#define zk 1.0                      // K valence
+#define zca 2.0                     // Ca valence
+
+//-------------------------Myoplasmic Ca Ion Concentration Changes--------------
+#define Csqn_max 10.0               // Total calsequestrin concentration in SR release compartment [mm]
+#define Km_csqn 0.8                 // Ca_rel half-saturation constant of Iup [mm]
+#define Cmdn_max 0.050              // Total calmodulin concentration in myoplasm [mm]
+#define Trpn_max 0.070              // Total troponin concentration in myoplasm [mm]
+#define kmcmdn 0.00238              // Cai Half-saturation constant for calmodulin [mm]
+#define Kmtrpn 0.0005               // Cai half-saturation constant for troponin [mm]
+#define Iup_max 0.005                      // Maximal Iup [mm/ms]
 
 class Cell{
 public:
     db pi;
-    /* Maximal currents */
-//    db INaK_max;      // Max. current through Na-K pump (pA/uF)
-  //  db INaCa_max;     // pA/pF;
-    db IpCa_max;      // max. ca current through sarcolemmal ca pump (ua/uf);
-    db Kq10;          // Temperature scaling factor for IKur and Ito kinetics
-    db gamma;         // Voltage dependance parameter for INaCa;
-
-    /* Half-saturation constant for currents */
-    db KmNai;       // half-saturation concentration of nak pump (mm);
-    db KmKo;        // half-saturation concentration of nak pump (mm);
-    db KmNa;        // na saturation constant for naca exchanger;
-    db KmCa;        // ca saturation factor for naca exchanger;
-
-    db ksat;        // saturation factor for naca exchanger;
-
-    // Ion Valences
-    db zna;         // Na valence
-    db zk;          // K valence
-    db zca;         // Ca valence
-
-    // Myoplasmic Ca Ion Concentration Changes
-    db Csqn_max;     // Max. [Ca] buffered in CSQN (mM)
-    db Km_csqn;      // Equalibrium constant of buffering for CSQN (mM)
-    db Cmdn_max;     // Max. [Ca] buffered in CMDN (mM)
-    db Trpn_max;     // Max. [Ca] buffered in TRPN (mM)
-    db kmcmd;        // Equalibrium constant of buffering for CMDN (mM)
-    db Kmtrpn;       // Equalibrium constant of buffering for TRPN (mM)
-    db Iup_max;      // Max. current through iup channel (mM/ms)
-    db caupm;        //  Max. [Ca] in NSR (mM)
-    //db tautr;      // Time constant of Ca transfer from NSR to JSR (ms)
 
     // future function "initial conditions"
     db V;           // mV
@@ -102,23 +96,6 @@ public:
     db w;           // Inactivation gate w of Ca release from jsr
     db Itot;        // mA
 
-
-    db ibarpca;     // max. ca current through sarcolemmal ca pump (ua/uf);
-    db kmpca;       // half-saturation concentration of sarcolemmal ca pump (mm);
-
-    //
-    // parameters for ikach -> revisar
-    //
-    db gkach;
-    db ach;
-
-    //
-    //external concentration
-    //
-
-    db kmcmdn;
-    db kmtrpn;
-
     //currents
     db Ito;      /* Transient Outward Potassium Current */
     db IKr;      /* Rapidly Activating Potassium Current */
@@ -138,35 +115,11 @@ public:
     db Iup;
     db Iup_leak;
 
-    //others
-    db mo;
-    db ho;
-    db jo;
-
-    db ireljsr;
-
     /* Equilibrium Potencial - Nerst Equation */
     db ENa;
     db EK;
     db ENC;
     db ECa;
-
-    /* Parameters Transient Outward Current ito */
-    db Gito;
-    db ato;
-    db iito;
-
-    /* Parameters Na-Ca Exchanger Current inaca */
-    db knaca;     // pa/pf;
-
-    db kmnancx;   // na saturation constant for naca exchanger;
-    db kmcancx;   // ca saturation factor for naca exchanger;
-    db ksatncx;   // saturation factor for naca exchanger;
-
-    /* Parameters Na-K Pump Current inak */
-    db INaKmax;  // max. current through na-k pump (ua/uf)  / 1.0933
-    db kmnai;    // half-saturation concentration of nak pump (mm);
-    db kmko;     // half-saturation concentration of nak pump (mm);
 
 
     __device__ __host__ Cell();
