@@ -72,6 +72,21 @@ void load_Matrix_A(mat &A, int Nx, int Ny,db Sx, db Sy){
   }
 }
 
+int testPrintFile(af::array &X, int Nx, int Ny, int nodesA, int iteration){
+     char file_name[50];
+     sprintf(file_name,"testParalelo%d.csv",iteration);
+     ofstream myfile;
+     myfile.open(file_name,ios::app);
+     int x;
+     int y;
+     for(int i = 0;i<nodesA;i++){
+         x = i%Nx;
+         y = i/Ny;
+         myfile << x << "," << y << ","<<X(i).host<double>()[0]<<endl;
+    }
+     myfile.close();
+     return 0;
+}
 
 int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
     char file_name[50];
@@ -332,7 +347,8 @@ int main(){
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
     if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat*/
-        create_voltage_file(t,afX,nodesA,k);
+        //create_voltage_file(t,afX,nodesA,k);
+        testPrintFile(afX,Nx,Ny,nodesA,k);
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);
   return 0;
