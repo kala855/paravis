@@ -8,7 +8,7 @@
 #define RTF (R*TEMP)/F            // j/c
 #define invRTF 1.0/RTF
 #define CAP 100.0                 // capacitancia valor para courtemanche? 0.1
-//intracellular volume
+//-----------------------------intracellular volume--------------------------
 #define Vi 13668.0                // micro_m^3
 #define Vup 1109.52               // micro_m^3
 #define Vrel 96.48                // micro_m^3
@@ -20,28 +20,31 @@
 #define Rix 0.2                   // Specific resistance of intracell liquid
 #define Riy 0.2                   // Specific resistance of intracell liquid
 
+//-----------------------------External Concentration-----------------------
+#define Ko 5.4                    // Extracellular K concentration [mm]
+#define Nao 140.0                 // Extracellular Na concentration [mm]
+#define Cao 1.8                   // Extracellular Ca concentration [mm]
+
+//------------------------------Maximal Conductances------------------------
+#define GNa 7.8
+#define GK1 0.09
+#define Gto 0.1652
+#define GKr 0.0294
+#define GKs 0.129
+#define GCaL 0.1238
+#define GbCa 0.00113
+#define GbNa 0.000674
+
+//-------------------------------Maximal Currents------------------------------
+#define INaK_max 0.6                // Max Current through Na-K pump [pA/pF]
+#define INaCa_max 1600.0            // Max. INaCa [pA/pF]
+
 class Cell{
 public:
     db pi;
-
-    // External concentration
-    db Ko;          // initial extracellular k [mm);
-    db Noa;         // initial extracellular na [mm);
-    db Coa;         // initial extracellular ca [mm);
-
-    /* Maximal  conductances  nS/pF;*/
-    db GNa;
-    db GK1;
-    db Gto;
-    db GKr;
-    db GKs;
-    db GCaL;
-    db GbCa;
-    db GbNa;
-
     /* Maximal currents */
-    db INaK_max;      // Max. current through Na-K pump (pA/uF)
-    db INaCa_max;     // pA/pF;
+//    db INaK_max;      // Max. current through Na-K pump (pA/uF)
+  //  db INaCa_max;     // pA/pF;
     db IpCa_max;      // max. ca current through sarcolemmal ca pump (ua/uf);
     db Kq10;          // Temperature scaling factor for IKur and Ito kinetics
     db gamma;         // Voltage dependance parameter for INaCa;
@@ -112,9 +115,6 @@ public:
     //
     //external concentration
     //
-
-    db Nao;        //  initial extracellular na [mm);
-    db Cao;        //  initial extracellular ca [mm);
 
     db kmcmdn;
     db kmtrpn;

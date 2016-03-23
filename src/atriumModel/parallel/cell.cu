@@ -6,24 +6,9 @@ __host__ __device__ Cell::Cell(){
 
   // Cell Geometry
   pi = 2*acos(0.0);
-  // External concentration
-  Ko = 5.4;           // extracellular K concentration [mM]
-  Nao = 140.0;        // extracellular Na concentration [mM]
-  Coa = 1.8;          // extracellular Ca concentration [mM]
-
-  // Maximal  conductances  [nS/pF]
-  GNa = 7.8;
-  GK1 =  0.09;
-  Gto = 0.1652;
-  GKr = 0.0294;
-  GKs = 0.129;
-  GCaL = 0.1238;
-  GbCa = 0.00113;
-  GbNa = 0.000674;
-
   // Maximal currents
-  INaK_max = 0.6;     // Maximal INaK [pA/pF]
-  INaCa_max = 1600.0; // Maximal INaCa [pA/pF]
+  //INaK_max = 0.6;     // Maximal INaK [pA/pF]
+  //INaCa_max = 1600.0; // Maximal INaCa [pA/pF]
   IpCa_max = 0.275;   // Maximal IpCa [pA/pF]
   Kq10 = 3.0;         // Temperature scaling factor for IKur and Ito kinetics
   gamma = 0.35;       // Voltage dependance parameter for INaCa
@@ -95,7 +80,7 @@ db Cell::getItot(db dt){
 /* Calculates All Currents */
 __device__ __host__
 void Cell::compute_currents(){
-  ECa = ((R*TEMP)/(zca*F)) * log(Coa/Cai);
+  ECa = ((R*TEMP)/(zca*F)) * log(Cao/Cai);
   ENa = ((R*TEMP)/(zna*F)) * log(Nao/Nai);
   EK = ((R*TEMP)/(zk*F)) * log(Ko/Ki);
   ENC = (F*V) / (R*TEMP);
@@ -254,8 +239,8 @@ __device__ __host__
 void Cell::comp_inaca (){
   db phif = exp(gamma*ENC);
   db phir = exp((gamma-1.0)*ENC);
-  db nmr  = (phif*pow(Nai,3.0)*Coa)-(phir*pow(Nao,3.0)*Cai);
-  db dnm  = (pow(KmNa,3.0)+pow(Nao,3.0))*(KmCa+Coa)*(1.0+(ksat*phir));
+  db nmr  = (phif*pow(Nai,3.0)*Cao)-(phir*pow(Nao,3.0)*Cai);
+  db dnm  = (pow(KmNa,3.0)+pow(Nao,3.0))*(KmCa+Cao)*(1.0+(ksat*phir));
   INaca = CAP*INaCa_max*(nmr/dnm);                                             // Equation 60
 }
 
