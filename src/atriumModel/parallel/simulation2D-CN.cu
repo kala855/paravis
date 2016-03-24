@@ -218,8 +218,8 @@ int main(){
   nstp_prn = 20;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 100;
-  Ny = 100;
+  Nx = 20;
+  Ny = 20;
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
@@ -263,7 +263,7 @@ int main(){
   int af_id = af::getDevice();
   cudaStream_t af_stream = afcu::getStream(af_id);
 
-  int blockSize = 256;
+  int blockSize = 32;
   dim3 dimGrid(ceil(float(nodes)/float(blockSize)),1,1);
   dim3 dimBlock(blockSize,1,1);
 
