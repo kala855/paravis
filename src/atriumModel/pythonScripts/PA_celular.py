@@ -46,14 +46,14 @@ def createPlotSelection():
     plotSelection = []
     for i in range (0,50):
         selection = IDSelectionSource()
-        selection.IDs = [0L,155+i]
+        selection.IDs = [0L,5550+i]
         selection.FieldType = 'ROW'
         # create a new 'Plot Selection Over Time'
         plotSelection.append(PlotSelectionOverTime(Input=testParalelo,Selection=selection))
     return plotSelection
 
 def loadSource():
-    folderTam = '20x20t'
+    folderTam = '100x100'
     folder='/home/john/Documents/Projects/paravis/src/atriumModel/parallel/outputdata/'+folderTam
     DIR = folder
     print len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])

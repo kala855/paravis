@@ -72,6 +72,21 @@ void load_Matrix_A(mat &A, int Nx, int Ny,db Sx, db Sy){
   }
 }
 
+int testPrintFile(af::array &X, int Nx, int Ny, int nodesA, int iteration){
+     char file_name[50];
+     sprintf(file_name,"testParalelo%d.csv",iteration);
+     ofstream myfile;
+     myfile.open(file_name,ios::app);
+     int x;
+     int y;
+     for(int i = 0;i<nodesA;i++){
+         x = i%Nx;
+         y = i/Ny;
+         myfile << x << "," << y << ","<<X(i).host<double>()[0]<<endl;
+    }
+     myfile.close();
+     return 0;
+}
 
 int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
     char file_name[50];
@@ -196,15 +211,15 @@ int main(){
 //-------------------------------------
   nrepeat = 1;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
-  BCL =  600;//600;  //1000
+  BCL =  1000;//600;  //1000
   CI = 0;
   dtstim = 2;
   CurrStim = -8000;
   nstp_prn = 20;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 20;
-  Ny = 20;
+  Nx = 100;
+  Ny = 100;
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
@@ -248,7 +263,7 @@ int main(){
   int af_id = af::getDevice();
   cudaStream_t af_stream = afcu::getStream(af_id);
 
-  int blockSize = 32;
+  int blockSize = 256;
   dim3 dimGrid(ceil(float(nodes)/float(blockSize)),1,1);
   dim3 dimBlock(blockSize,1,1);
 
@@ -332,7 +347,8 @@ int main(){
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
     if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat*/
-        create_voltage_file(t,afX,nodesA,k);
+        //create_voltage_file(t,afX,nodesA,k);
+        testPrintFile(afX,Nx,Ny,nodesA,k);
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);
   return 0;
