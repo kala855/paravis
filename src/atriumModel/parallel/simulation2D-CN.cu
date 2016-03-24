@@ -211,15 +211,15 @@ int main(){
 //-------------------------------------
   nrepeat = 1;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
-  BCL =  600;//600;  //1000
+  BCL =  1000;//600;  //1000
   CI = 0;
   dtstim = 2;
   CurrStim = -8000;
   nstp_prn = 20;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 20;
-  Ny = 20;
+  Nx = 100;
+  Ny = 100;
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
@@ -263,7 +263,7 @@ int main(){
   int af_id = af::getDevice();
   cudaStream_t af_stream = afcu::getStream(af_id);
 
-  int blockSize = 32;
+  int blockSize = 256;
   dim3 dimGrid(ceil(float(nodes)/float(blockSize)),1,1);
   dim3 dimBlock(blockSize,1,1);
 
