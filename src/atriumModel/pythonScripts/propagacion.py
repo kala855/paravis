@@ -8,7 +8,7 @@ paraview.simple._DisableFirstRenderCameraReset()
 # create a new 'CSV Reader'
 
 def loadSource():
-    folderTam = '100x100BCL1000-2'
+    folderTam = '120x120BCL1000'
     folder='/home/john/Documents/Projects/paravis/src/atriumModel/parallel/outputdata/'+folderTam
     DIR = folder
     print len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
@@ -19,7 +19,7 @@ def loadSource():
     for file_name in list_of_files:
         names.append(folder+'/'+file_name)
         names2.append(folder+'/testParalelo'+str(i)+'.csv')
-        i = i + 20
+        i = i + 10
     return names2
 
 
