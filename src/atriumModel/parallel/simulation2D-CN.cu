@@ -160,7 +160,7 @@ __global__ void d_copy_voltage_test(Cell *cells, db *X, db *prevV, int Nx, int s
         idx = (i%Nx==0)? idx+3: idx+1;
         cells[idx].V = X[i];
         prevV[idx] = X[i];
-       // printf("i=%d,idx=%d\n",i,idx);
+ //       printf("i=%d,idx=%d\n",i,idx);
     }
 }
 
@@ -168,11 +168,10 @@ __global__ void d_copy_voltage_test(Cell *cells, db *X, db *prevV, int Nx, int s
 __global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size){
     int i = blockIdx.x*blockDim.x+threadIdx.x;
     if(i<size){
-        int idx = i+ Nx;
-        idx = (i%Nx==0)? idx+3: idx+1;
+        int idx = (Nx+3)+((i/Nx) * (Nx+2))+(i%Nx);
         cells[idx].V = X[i];
         prevV[idx] = X[i];
-        printf("i=%d,idx=%d\n",i,idx);
+   //     printf("i=%d,idx=%d\n",i,idx);
     }
 }
 
@@ -340,8 +339,8 @@ int main(){
     afX = af::solveLU(afALU, pivot, afB);
 
     d_x = afX.device<db>();
-   // d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
-    d_copy_voltage_test<<<1,1,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
+    d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
+    //d_copy_voltage_test<<<1,1,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaStreamSynchronize(af_stream));
     gpuErrchk(cudaDeviceSynchronize());
