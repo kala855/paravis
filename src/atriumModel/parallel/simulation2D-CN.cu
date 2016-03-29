@@ -154,16 +154,6 @@ __global__ void d_update_B(int Nx, int Ny, db dt, db Sx, db Sy, db Istim, db Cur
     }
 }
 
-__global__ void d_copy_voltage_test(Cell *cells, db *X, db *prevV, int Nx, int size){
-    int idx = Nx;
-    for(int i=0; i<size; i++){
-        idx = (i%Nx==0)? idx+3: idx+1;
-        cells[idx].V = X[i];
-        prevV[idx] = X[i];
- //       printf("i=%d,idx=%d\n",i,idx);
-    }
-}
-
 
 __global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size){
     int i = blockIdx.x*blockDim.x+threadIdx.x;
@@ -171,7 +161,6 @@ __global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size){
         int idx = (Nx+3)+((i/Nx) * (Nx+2))+(i%Nx);
         cells[idx].V = X[i];
         prevV[idx] = X[i];
-   //     printf("i=%d,idx=%d\n",i,idx);
     }
 }
 
@@ -217,8 +206,8 @@ int main(){
   nstp_prn = 20;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 20;
-  Ny = 20;
+  Nx = 100;
+  Ny = 100;
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
@@ -340,7 +329,6 @@ int main(){
 
     d_x = afX.device<db>();
     d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
-    //d_copy_voltage_test<<<1,1,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaStreamSynchronize(af_stream));
     gpuErrchk(cudaDeviceSynchronize());
