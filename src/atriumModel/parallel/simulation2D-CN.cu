@@ -3,6 +3,7 @@
 #include "cell.cuh"
 #include "arrayfire.h"
 #include <af/cuda.h>
+#include <cuda_profiler_api.h>
 
 using namespace std;
 using namespace arma;
@@ -177,7 +178,7 @@ __global__ void init_d_B(int nodesA, db *d_B){
         d_B[i] = 0.0;
 }
 
-int main(){
+int main(int argc, char *argv[]){
   db deltaX,deltaY;
   int Nx,Ny,nodes,nodesA;
   db Dx,Dy;
@@ -199,15 +200,23 @@ int main(){
 //-------------------------------------
   nrepeat = 1;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
-  BCL =  1000;//600;  //1000
+  BCL =  600;//600;  //1000
   CI = 0;
   dtstim = 2;
   CurrStim = -8000;
   nstp_prn = 10;
   tend = tbegin+dtstim;
 //-------------------------------------
-  Nx = 120;
-  Ny = 120;
+
+  if (argc<3){
+      printf("Por favor ingrese el número de células en X y el número de células en Y\n");
+      exit(1);
+  }else{
+      printf("%s %s\n",argv[1],argv[2]);
+  }
+
+  Nx = atoi(argv[1]);
+  Ny = atoi(argv[2]);
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
@@ -243,6 +252,8 @@ int main(){
   int device = 0;
   af::setDevice(device);
 
+
+  cudaProfilerStart();
   Cell *d_cells, *h_cells;
   const size_t sz = nodes * sizeof(Cell);
   h_cells = new Cell[nodes]();
@@ -333,9 +344,11 @@ int main(){
     gpuErrchk(cudaStreamSynchronize(af_stream));
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
-    if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat*/
+   // if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat*/
         //create_voltage_file(t,afX,nodesA,k);
-        testPrintFile(afX,Nx,Ny,nodesA,k);
+     //   testPrintFile(afX,Nx,Ny,nodesA,k);
+   // if(k==0)
+     //   cudaProfilerStop();
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);
   return 0;
