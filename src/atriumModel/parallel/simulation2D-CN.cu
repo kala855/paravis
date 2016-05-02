@@ -89,6 +89,23 @@ int testPrintFile(af::array &X, int Nx, int Ny, int nodesA, int iteration){
      return 0;
 }
 
+int printFileCai(db *h_cai,int Nx,int Ny,int nodesA,int iteration){
+    char file_name[50];
+    sprintf(file_name,"testCalcio%d.csv",iteration);
+    ofstream myfile;
+    myfile.open(file_name,ios::app);
+    int x;
+    int y;
+    for(int i = 0;i<nodesA;i++){
+        x = i%Nx;
+        y = i/Ny;
+        myfile << x << "," << y << ","<<h_cai[i]<<endl;
+    }
+    myfile.close();
+    return 0;
+
+}
+
 int create_voltage_file(db t, af::array &X,int nodesA, int iteration){
     char file_name[50];
     sprintf(file_name,"testParalelo%d.csv",iteration);
@@ -156,12 +173,13 @@ __global__ void d_update_B(int Nx, int Ny, db dt, db Sx, db Sy, db Istim, db Cur
 }
 
 
-__global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size){
+__global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size, db *d_cai){
     int i = blockIdx.x*blockDim.x+threadIdx.x;
     if(i<size){
         int idx = (Nx+3)+((i/Nx) * (Nx+2))+(i%Nx);
         cells[idx].V = X[i];
         prevV[idx] = X[i];
+        d_cai[i] = cells[idx].Cai * 10000;
     }
 }
 
@@ -208,8 +226,8 @@ int main(int argc, char *argv[]){
   tend = tbegin+dtstim;
 //-------------------------------------
 
-  if (argc<3){
-      printf("Por favor ingrese el número de células en X y el número de células en Y\n");
+  if (argc<4){
+      printf("Por favor ingrese el número de células en X, el número de células en Y y el identificador del device\n");
       exit(1);
   }else{
       printf("%s %s\n",argv[1],argv[2]);
@@ -249,10 +267,11 @@ int main(int argc, char *argv[]){
   load_Matrix_A(A, Nx, Ny, Sx, Sy);
 
   //Additional ArrayFire Code
-  int device = 0;
+  int device = atoi(argv[3]);
   af::setDevice(device);
+  gpuErrchk(cudaSetDevice(device));
 
-
+  // Iniciar proceso de profiling
   cudaProfilerStart();
   Cell *d_cells, *h_cells;
   const size_t sz = nodes * sizeof(Cell);
@@ -287,7 +306,11 @@ int main(int argc, char *argv[]){
   db *d_B;
   db *d_prevV;
   db *d_x;
-
+////// Para obtener la corriente de Calcio//////////////////////////
+  db *d_cai, *h_cai;
+  gpuErrchk(cudaMalloc((void**)&d_cai,nodesA*sizeof(db)));
+  h_cai = (double*)malloc(nodesA*sizeof(db));
+///////////////////////////////////////////////////////////////
   gpuErrchk(cudaMalloc((void**)&d_B,nodesA*sizeof(db)));
   gpuErrchk(cudaMalloc((void**)&d_prevV,nodes*sizeof(db)));
 
@@ -339,17 +362,20 @@ int main(int argc, char *argv[]){
     afX = af::solveLU(afALU, pivot, afB);
 
     d_x = afX.device<db>();
-    d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA);
+    d_copy_voltage<<<dimGridCopyV,dimBlock,0,af_stream>>>(d_cells,d_x,d_prevV,Nx,nodesA, d_cai);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaStreamSynchronize(af_stream));
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
-   // if(k%nstp_prn==0 && k>time_to_print) //use this for plot last beat*/
-        //create_voltage_file(t,afX,nodesA,k);
-     //   testPrintFile(afX,Nx,Ny,nodesA,k);
-   // if(k==0)
-     //   cudaProfilerStop();
+    //if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
+        //gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
+      //  testPrintFile(afX,Nx,Ny,nodesA,k);
+        //printFileCai(h_cai,Nx,Ny,nodesA,k);
+   // }
+    if(k==0)
+        cudaProfilerStop();
   }
-  cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);
+  cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);cudaFree(d_cai);
+  free(h_cai);
   return 0;
 }
