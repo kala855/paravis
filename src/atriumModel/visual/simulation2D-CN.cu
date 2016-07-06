@@ -367,11 +367,11 @@ int main(int argc, char *argv[]){
     gpuErrchk(cudaStreamSynchronize(af_stream));
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
-    //if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
-        //gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
-      //  testPrintFile(afX,Nx,Ny,nodesA,k);
-        //printFileCai(h_cai,Nx,Ny,nodesA,k);
-   // }
+    if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
+        gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
+        //testPrintFile(afX,Nx,Ny,nodesA,k);
+       // printFileCai(h_cai,Nx,Ny,nodesA,k);
+    }
     if(k==0)
         cudaProfilerStop();
   }
