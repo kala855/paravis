@@ -4,9 +4,11 @@
 #include "arrayfire.h"
 #include <af/cuda.h>
 #include <cuda_profiler_api.h>
+#include "paravisAdaptor.h"
 
 using namespace std;
 using namespace arma;
+using namespace paravisAdaptor;
 
 #define db double
 #define PI 3.14159265
@@ -235,6 +237,15 @@ int main(int argc, char *argv[]){
 
   Nx = atoi(argv[1]);
   Ny = atoi(argv[2]);
+  unsigned int numPoints[3];
+  double spacing[3];
+  numPoints[0] = Nx;
+  numPoints[1] = Ny;
+  numPoints[2] = 0;
+  spacing[0] = 0.1;
+  spacing[1] = 0.1;
+  spacing[2] = 0.0;
+
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
@@ -335,6 +346,9 @@ int main(int argc, char *argv[]){
 
   //nstp=-1;  // only for one iteration
 
+  //// Inicialización de Paraview Catalyst ///////////////////////
+  Initialize(argc, argv);
+  ///////////////////////////////////////////////////////////////
   for(int k=0; k<nstp+2; k++,t+=dt){ //each time
     if(t>=tbegin && t<=tend){
       flag_stm = 0;
@@ -369,6 +383,9 @@ int main(int argc, char *argv[]){
     afX.unlock();
     if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
         gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
+        // Co-Procesamiento Visualización Usando Paraview Catalyst//////////////
+        CoProcess(k,t,numPoints,spacing,h_cai);
+        /////////////////////////////////////////////////////////////////////////
         //testPrintFile(afX,Nx,Ny,nodesA,k);
        // printFileCai(h_cai,Nx,Ny,nodesA,k);
     }
@@ -377,5 +394,8 @@ int main(int argc, char *argv[]){
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);cudaFree(d_cai);
   free(h_cai);
+  // Finalización Paraview Catalyst //////////////////////////////////////////
+  Finalize();
+  ///////////////////////////////////////////////////////////////////////////
   return 0;
 }

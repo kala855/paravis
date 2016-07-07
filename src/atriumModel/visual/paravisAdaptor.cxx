@@ -22,7 +22,7 @@ namespace paravisAdaptor{
             Processor->Initialize();
         }
 
-        for (int i = 1; i < numScripts; i++) {
+        for (int i = 4; i < numScripts; i++) {
             vtkCPPythonScriptPipeline* pipeline = vtkCPPythonScriptPipeline::New();
             pipeline->Initialize(scripts[i]);
             Processor->AddPipeline(pipeline);
