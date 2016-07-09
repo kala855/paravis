@@ -5,7 +5,7 @@ from paraview import coprocessing
 
 #--------------------------------------------------------------
 # Code generated from cpstate.py to create the CoProcessor.
-# ParaView 5.0.1-525-g5c9b655 64 bits
+# ParaView 5.1.0-74-g2fffdbb 64 bits
 
 
 # ----------------------- CoProcessor definition -----------------------
@@ -13,7 +13,7 @@ from paraview import coprocessing
 def CreateCoProcessor():
   def _CreatePipeline(coprocessor, datadescription):
     class Pipeline:
-      # state file generated using paraview version 5.0.1-525-g5c9b655
+      # state file generated using paraview version 5.1.0-74-g2fffdbb
 
       # ----------------------------------------------------------------
       # setup the data processing pipelines
@@ -24,15 +24,15 @@ def CreateCoProcessor():
 
       # create a new 'XML Image Data Reader'
       # create a producer from a simulation input
-      writeImageData2vti = coprocessor.CreateProducer(datadescription, 'input')
+      filename_10000_0vti = coprocessor.CreateProducer(datadescription, 'input')
 
       # create a new 'Parallel Image Data Writer'
-      parallelImageDataWriter1 = servermanager.writers.XMLPImageDataWriter(Input=writeImageData2vti)
+      parallelImageDataWriter1 = servermanager.writers.XMLPImageDataWriter(Input=filename_10000_0vti)
 
       # register the writer with coprocessor
       # and provide it with information such as the filename to use,
       # how frequently to write the data, etc.
-      coprocessor.RegisterWriter(parallelImageDataWriter1, filename='filename_%t.pvti', freq=1)
+      coprocessor.RegisterWriter(parallelImageDataWriter1, filename='potencial_%t.pvti', freq=1)
 
       # ----------------------------------------------------------------
       # finally, restore active source
@@ -96,4 +96,4 @@ def DoCoProcessing(datadescription):
     coprocessor.WriteImages(datadescription, rescale_lookuptable=False)
 
     # Live Visualization, if enabled.
-    coprocessor.DoLiveVisualization(datadescription, "192.168.1.236", 22222)
+    coprocessor.DoLiveVisualization(datadescription, "localhost", 22222)
