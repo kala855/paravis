@@ -12,7 +12,7 @@ find_package(CUDA REQUIRED)
 set(CUDA_SEPARABLE_COMPILATION ON)
 
 set(USE_CATALYST ON CACHE BOOL "Link the simulator with Catalyst")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/home/john/Downloads/paraviewBuild")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/home/john/Downloads/Paraview-bin")
 if(USE_CATALYST)
     find_package(ParaView 5.0 REQUIRED COMPONENTS vtkPVPythonCatalyst)
     include("${PARAVIEW_USE_FILE}")

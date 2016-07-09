@@ -14,6 +14,7 @@ using namespace paravisAdaptor;
 #define PI 3.14159265
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
    if (code != cudaSuccess)
@@ -283,7 +284,8 @@ int main(int argc, char *argv[]){
   gpuErrchk(cudaSetDevice(device));
 
   // Iniciar proceso de profiling
-  cudaProfilerStart();
+  //cudaProfilerStart();
+  /////////////////////////////////////////////////////////////////////////
   Cell *d_cells, *h_cells;
   const size_t sz = nodes * sizeof(Cell);
   h_cells = new Cell[nodes]();
@@ -381,7 +383,7 @@ int main(int argc, char *argv[]){
     gpuErrchk(cudaStreamSynchronize(af_stream));
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
-    if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
+   if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
         gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
         // Co-Procesamiento Visualización Usando Paraview Catalyst//////////////
         CoProcess(k,t,numPoints,spacing,h_cai);
@@ -389,8 +391,8 @@ int main(int argc, char *argv[]){
         //testPrintFile(afX,Nx,Ny,nodesA,k);
        // printFileCai(h_cai,Nx,Ny,nodesA,k);
     }
-    if(k==0)
-        cudaProfilerStop();
+   // if(k==0)
+     //   cudaProfilerStop();
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);cudaFree(d_cai);
   free(h_cai);
