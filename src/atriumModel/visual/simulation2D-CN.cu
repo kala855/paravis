@@ -251,13 +251,14 @@ int main(int argc, char *argv[]){
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
   dt = 0.02;
-  deltaX = deltaY = 0.025;
+  deltaX = deltaY = 0.025; // verificar las unidades URGENTE
   nstp = (tbegin+BCL*nrepeat+CI)/dt;
   nodes = (Nx+2)*(Ny+2);              // nodes including boundary conditions
   nodesA = Nx*Ny;                 //nodes calculated in matrix A, no boundary conditions.
 
   vector<Cell> cells(nodes);
 
+  printf("Tamaño en bytes de una célula %d\n",sizeof(Cell));
 
   db areaT = cells[0].pi*pow(RADIUSCELL,2);  // Capacitive membrane area
   db aCm = CAP / areaT;             // Capacitance per unit area pF/cm^2
