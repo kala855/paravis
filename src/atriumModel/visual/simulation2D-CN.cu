@@ -385,8 +385,8 @@ int main(int argc, char *argv[]){
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
    if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
-        //gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
-        gpuErrchk(cudaMemcpyAsync(h_cai,d_x,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
+        gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
+        //gpuErrchk(cudaMemcpyAsync(h_cai,d_x,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
         // Co-Procesamiento Visualización Usando Paraview Catalyst//////////////
         CoProcess(k,t,numPoints,spacing,h_cai);
         /////////////////////////////////////////////////////////////////////////
