@@ -230,7 +230,7 @@ int main(int argc, char *argv[]){
       printf("Por favor ingrese el número de células en X, el número de células en Y y el identificador del device\n");
       exit(1);
   }else{
-      printf("%s %s\n",argv[1],argv[2]);
+      //printf("%s %s\n",argv[1],argv[2]);
   }
 
   Nx = atoi(argv[1]);
@@ -251,7 +251,7 @@ int main(int argc, char *argv[]){
   db aCm = CAP / areaT;             // Capacitance per unit area pF/cm^2
   Dx = Dy = RADIUSCELL / (2.0*Ri*aCm*1e-9); //D = 0.00217147 cm^2/ms
 
-  cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
+  //cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
 
 
   Sx = (dt*Dx)/(2.0*pow(deltaX,2));
