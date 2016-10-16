@@ -137,9 +137,13 @@ __global__ void d_update_B(int Nx, int Ny, db dt, db Sx, db Sy, db Istim, db Cur
         prev = node - 1;
         next = node + 1;
         j = node % (Nx+2);        //pos in x -> cols
-        i = node / (Nx+2);        //pos in y -> rows
+        i = node / (Ny+2);        //pos in y -> rows
+
+       // printf("Células a estimular = %d\n",(int)(begin_cell)*i);
+
         // Estimulando toda una fila de celulas
-        if(!flag_stm && (node >= begin_cell && node <= begin_cell + Nx -1)){
+       //if(!flag_stm && (node >= begin_cell && node <= begin_cell + Nx -1)){
+           if(!flag_stm && (j==(Nx+2)/2)){
             Istim = CurrStim;
         }
         else{
@@ -221,7 +225,7 @@ int main(int argc, char *argv[]){
 //-------------------------------------
   nrepeat = 1;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
-  BCL =  1500;//600;  //1000
+  BCL =  850;//600;  //1000
   CI = 0;
   dtstim = 2;
   CurrStim = -8000;
@@ -233,7 +237,7 @@ int main(int argc, char *argv[]){
       printf("Por favor ingrese el número de células en X, el número de células en Y y el identificador del device\n");
       exit(1);
   }else{
-      printf("%s %s\n",argv[1],argv[2]);
+     // printf("%s %s\n",argv[1],argv[2]);
   }
 
   Nx = atoi(argv[1]);
@@ -247,24 +251,26 @@ int main(int argc, char *argv[]){
   spacing[1] = 0.1;
   spacing[2] = 0.0;
 
-  db row_to_stim = 1;
-  db begin_cell = row_to_stim*(Nx+2) + 1;
+  //db row_to_stim = 10;
+  //db begin_cell = row_to_stim*(Nx+2) + 1;
 
-  dt = 0.02;
-  deltaX = deltaY = 0.025; // verificar las unidades URGENTE
+  db begin_cell = (3*Nx+2)/2;
+
+  dt = 0.025;// ms
+  deltaX = deltaY = 0.025; // centímetros
   nstp = (tbegin+BCL*nrepeat+CI)/dt;
   nodes = (Nx+2)*(Ny+2);              // nodes including boundary conditions
   nodesA = Nx*Ny;                 //nodes calculated in matrix A, no boundary conditions.
 
   vector<Cell> cells(nodes);
 
-  printf("Tamaño en bytes de una célula %d\n",sizeof(Cell));
+  //printf("Tamaño en bytes de una célula %d\n",sizeof(Cell));
 
   db areaT = cells[0].pi*pow(RADIUSCELL,2);  // Capacitive membrane area
   db aCm = CAP / areaT;             // Capacitance per unit area pF/cm^2
   Dx = Dy = RADIUSCELL / (2.0*Ri*aCm*1e-9); //D = 0.00217147 cm^2/ms
 
-  cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
+  //cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
 
 
   Sx = (dt*Dx)/(2.0*pow(deltaX,2));

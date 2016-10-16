@@ -96,4 +96,4 @@ def DoCoProcessing(datadescription):
     coprocessor.WriteImages(datadescription, rescale_lookuptable=False)
 
     # Live Visualization, if enabled.
-    coprocessor.DoLiveVisualization(datadescription, "localhost", 22222)
+    coprocessor.DoLiveVisualization(datadescription, "192.168.1.236", 22222)

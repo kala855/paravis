@@ -272,7 +272,7 @@ int main(int argc, char *argv[]){
   gpuErrchk(cudaSetDevice(device));
 
   // Iniciar proceso de profiling/////////////////////////////
-//  cudaPirofilerStart();
+  //cudaProfilerStart();
   //////////////////////////////////////////////////////////////////
 
   Cell *d_cells, *h_cells;
@@ -335,7 +335,7 @@ int main(int argc, char *argv[]){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
-  //nstp=-1;  // only for one iteration
+  nstp=-1;  // only for one iteration
 
   for(int k=0; k<nstp+2; k++,t+=dt){ //each time
     if(t>=tbegin && t<=tend){
@@ -374,8 +374,8 @@ int main(int argc, char *argv[]){
       //  testPrintFile(afX,Nx,Ny,nodesA,k);
         //printFileCai(h_cai,Nx,Ny,nodesA,k);
    // }
-   // if(k==0)
-     //   cudaProfilerStop();
+    //if(k==0)
+      //  cudaProfilerStop();
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);cudaFree(d_cai);
   free(h_cai);
