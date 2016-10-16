@@ -218,7 +218,7 @@ int main(int argc, char *argv[]){
 //-------------------------------------
   nrepeat = 1;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
-  BCL =  600;//600;  //1000
+  BCL =  250;//600;  //1000
   CI = 0;
   dtstim = 2;
   CurrStim = -8000;
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]){
       printf("Por favor ingrese el número de células en X, el número de células en Y y el identificador del device\n");
       exit(1);
   }else{
-      printf("%s %s\n",argv[1],argv[2]);
+      //printf("%s %s\n",argv[1],argv[2]);
   }
 
   Nx = atoi(argv[1]);
@@ -238,8 +238,8 @@ int main(int argc, char *argv[]){
   db row_to_stim = 1;
   db begin_cell = row_to_stim*(Nx+2) + 1;
 
-  dt = 0.02;
-  deltaX = deltaY = 0.025;
+  dt = 0.025;//0.02;// ms
+  deltaX = deltaY = 0.025; // cm
   nstp = (tbegin+BCL*nrepeat+CI)/dt;
   nodes = (Nx+2)*(Ny+2);              // nodes including boundary conditions
   nodesA = Nx*Ny;                 //nodes calculated in matrix A, no boundary conditions.
@@ -251,7 +251,7 @@ int main(int argc, char *argv[]){
   db aCm = CAP / areaT;             // Capacitance per unit area pF/cm^2
   Dx = Dy = RADIUSCELL / (2.0*Ri*aCm*1e-9); //D = 0.00217147 cm^2/ms
 
-  cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
+  //cout<<areaT<<" "<<aCm<<" "<< Dx << endl;
 
 
   Sx = (dt*Dx)/(2.0*pow(deltaX,2));
@@ -271,8 +271,10 @@ int main(int argc, char *argv[]){
   af::setDevice(device);
   gpuErrchk(cudaSetDevice(device));
 
-  // Iniciar proceso de profiling
-  cudaProfilerStart();
+  // Iniciar proceso de profiling/////////////////////////////
+  //cudaProfilerStart();
+  //////////////////////////////////////////////////////////////////
+
   Cell *d_cells, *h_cells;
   const size_t sz = nodes * sizeof(Cell);
   h_cells = new Cell[nodes]();
@@ -333,7 +335,7 @@ int main(int argc, char *argv[]){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
-  //nstp=-1;  // only for one iteration
+  nstp=-1;  // only for one iteration
 
   for(int k=0; k<nstp+2; k++,t+=dt){ //each time
     if(t>=tbegin && t<=tend){
@@ -372,8 +374,8 @@ int main(int argc, char *argv[]){
       //  testPrintFile(afX,Nx,Ny,nodesA,k);
         //printFileCai(h_cai,Nx,Ny,nodesA,k);
    // }
-    if(k==0)
-        cudaProfilerStop();
+    //if(k==0)
+      //  cudaProfilerStop();
   }
   cudaFree(d_cells);cudaFree(d_prevV);cudaFree(d_B);cudaFree(d_x);cudaFree(d_cai);
   free(h_cai);
