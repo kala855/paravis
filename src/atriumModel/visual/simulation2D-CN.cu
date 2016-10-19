@@ -140,10 +140,9 @@ __global__ void d_update_B(int Nx, int Ny, db dt, db Sx, db Sy, db Istim, db Cur
         i = node / (Ny+2);        //pos in y -> rows
 
        // printf("Células a estimular = %d\n",(int)(begin_cell)*i);
-
-        // Estimulando toda una fila de celulas
-       //if(!flag_stm && (node >= begin_cell && node <= begin_cell + Nx -1)){
-           if(!flag_stm && (j==(Nx+2)/2)){
+       //if(!flag_stm && (node >= begin_cell && node <= begin_cell + Nx -1)){ // Estimulando la fila de celulas inferior
+           //if(!flag_stm && (j==(Nx+2)/2)){ // Estimulando una columna central de células
+           if(!flag_stm && (i==3)){ // Estimulando una columna central de células
             Istim = CurrStim;
         }
         else{
@@ -225,7 +224,7 @@ int main(int argc, char *argv[]){
 //-------------------------------------
   nrepeat = 1;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
-  BCL =  850;//600;  //1000
+  //BCL =  250;//600;  //1000
   CI = 0;
   dtstim = 2;
   CurrStim = -8000;
@@ -233,8 +232,8 @@ int main(int argc, char *argv[]){
   tend = tbegin+dtstim;
 //-------------------------------------
 
-  if (argc<4){
-      printf("Por favor ingrese el número de células en X, el número de células en Y y el identificador del device\n");
+  if (argc<5){
+      printf("Por favor ingrese el número de células en X, el número de células en Y, el identificador del device y el BCL\n");
       exit(1);
   }else{
      // printf("%s %s\n",argv[1],argv[2]);
@@ -242,6 +241,7 @@ int main(int argc, char *argv[]){
 
   Nx = atoi(argv[1]);
   Ny = atoi(argv[2]);
+  BCL = atof(argv[4]);
   unsigned int numPoints[3];
   double spacing[3];
   numPoints[0] = Nx;
@@ -251,13 +251,13 @@ int main(int argc, char *argv[]){
   spacing[1] = 0.1;
   spacing[2] = 0.0;
 
-  //db row_to_stim = 10;
-  //db begin_cell = row_to_stim*(Nx+2) + 1;
+  db row_to_stim = 1;
+  db begin_cell = row_to_stim*(Nx+2) + 1;
 
-  db begin_cell = (3*Nx+2)/2;
+  //db begin_cell = (3*Nx+2)/2;
 
   dt = 0.025;// ms
-  deltaX = deltaY = 0.025; // centímetros
+  deltaX = deltaY = 0.02; // centímetros
   nstp = (tbegin+BCL*nrepeat+CI)/dt;
   nodes = (Nx+2)*(Ny+2);              // nodes including boundary conditions
   nodesA = Nx*Ny;                 //nodes calculated in matrix A, no boundary conditions.
@@ -391,8 +391,8 @@ int main(int argc, char *argv[]){
     gpuErrchk(cudaDeviceSynchronize());
     afX.unlock();
    if(k%nstp_prn==0 && k>time_to_print){ //use this for plot last beat*/
-        gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
-        //gpuErrchk(cudaMemcpyAsync(h_cai,d_x,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
+        //gpuErrchk(cudaMemcpyAsync(h_cai,d_cai,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
+        gpuErrchk(cudaMemcpyAsync(h_cai,d_x,sizeof(db)*nodesA,cudaMemcpyDeviceToHost,af_stream));
         // Co-Procesamiento Visualización Usando Paraview Catalyst//////////////
         CoProcess(k,t,numPoints,spacing,h_cai);
         /////////////////////////////////////////////////////////////////////////
