@@ -199,7 +199,8 @@ __global__ void d_copy_voltage(Cell *cells, db *X, db *prevV, int Nx, int size, 
         int idx = (Nx+3)+((i/Nx) * (Nx+2))+(i%Nx);
         cells[idx].V = X[i];
         prevV[idx] = X[i];
-        d_cai[i] = cells[idx].Cai * 10000;
+        //d_cai[i] = cells[idx].Cai * 10000;
+        d_cai[i] = cells[idx].ifunny;
     }
 }
 
@@ -236,7 +237,7 @@ int main(int argc, char *argv[]){
   int flag_stm = 1;
   db Istim = 0.0;
 //-------------------------------------
-  nrepeat = 1;   //60-> 1min, 600-> 10min
+  nrepeat = 4;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
   //BCL =  250;//600;  //1000
   CI = 0;

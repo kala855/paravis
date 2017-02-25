@@ -63,6 +63,9 @@
 #define Kmtrpn 0.0005               // Cai half-saturation constant for troponin [mm]
 #define Iup_max 0.005                      // Maximal Iup [mm/ms]
 
+#define gf 0.075
+#define ef -22
+
 class Cell{
 public:
     db pi;
@@ -114,6 +117,7 @@ public:
     db Itr;
     db Iup;
     db Iup_leak;
+    db ifunny;
 
     /* Equilibrium Potencial - Nerst Equation */
     db ENa;
@@ -126,7 +130,7 @@ public:
 
     // main functions
     __device__ __host__ void init();
-    __device__ __host__ void compute_currents();
+    __device__ __host__ void compute_currents(db dt);
     __device__ __host__ void compute_concentrations(db dt);
     __device__ __host__ void compute_gates(db dt);
 
@@ -163,6 +167,7 @@ public:
     __device__ __host__ void gates_ical(db dt);
     __device__ __host__ void gates_irel(db dt);
     __device__ __host__ void comp_itot2(db Istim);
+    __device__ __host__ void comp_if(db dt);
 
     // device main functions
    __device__  __host__ void d_compute_currents();

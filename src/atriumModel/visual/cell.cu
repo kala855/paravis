@@ -42,7 +42,7 @@ __host__ __device__ Cell::Cell(){
 
 __device__ __host__
 db Cell::getItot(db dt){
-  compute_currents();
+  compute_currents(dt);
   compute_concentrations(dt);
   compute_gates(dt);
   return Itot;
@@ -50,7 +50,7 @@ db Cell::getItot(db dt){
 
 /* Calculates All Currents */
 __device__ __host__
-void Cell::compute_currents(){
+void Cell::compute_currents(db dt){
   ECa = ((R*TEMP)/(zca*F)) * log(Cao/Cai);
   ENa = ((R*TEMP)/(zna*F)) * log(Nao/Nai);
   EK = ((R*TEMP)/(zk*F)) * log(Ko/Ki);
@@ -69,6 +69,7 @@ void Cell::compute_currents(){
   comp_itr();
   comp_ito ();      // Calculates Transient Outward Current
   comp_ikur ();     // Calculates Ultra-Rapidly activation K Current
+  comp_if(dt);        // Calulates I Funny current
   comp_itot();      // Calulates Total Current
 }
 
@@ -182,7 +183,7 @@ void Cell::comp_ikur (){
 __device__ __host__
 void Cell::comp_ikr (){
   db r = 1.0/(1.0+exp((V+15.0)/22.4));
-  IKr = CAP*GKr*xr*r*(V-EK);                                    // Equation 47
+  IKr = CAP*GKr*xr*r*(V-EK)*0.55;                              // Equation 47 55% Verkerk2015
 }
 
 /* Calculates Slowly Activating K Current  IKs*/
@@ -194,7 +195,7 @@ void Cell::comp_iks (){
 /* Calculates Currents through L-Type Ca Channel */
 __device__ __host__
 void Cell::comp_ical (){
-  ICal = CAP*GCaL*d*f*fca*(V-65.0);  // ICal  Equation 53
+  ICal = CAP*GCaL*d*f*fca*(V-65.0)*0.32;  // ICal  Equation 53 32% articulo Verkerk2015
 }
 
 /* Calculates Na-K Pump Current */
@@ -262,12 +263,29 @@ void Cell::comp_iupleak(){
 }
 
 __device__ __host__
+void Cell::comp_if(db dt){
+    db yinf, taoy, y;
+
+    if (V < -80.0){
+        yinf = 0.01329+0.99921/(1+exp((V+97.134)/8.1752));
+    }else{
+        yinf = 0.0002501*exp(-V/12.861);
+    }
+    taoy = 1000/(0.36*(V+148.8)/(exp(0.066*(V+148.8))-1)+0.1*(V+87.3)/(1-exp(-0.21*(V+87.3))))-54;
+
+    y = exp(-(-dt/taoy))+(yinf/taoy);
+
+    ifunny = y * gf*(V-ef);
+
+}
+
+__device__ __host__
 void Cell::comp_itot(){
   db IK,INat,ICa;
   IK = IKr + IKs + IK1 + IKur;
   INat = INa + IbNa + INaK + INaca;
   ICa = ICal + IbCa + IpCa;
-  Itot = IK + INat + ICa + Ito;
+  Itot = IK + INat + ICa + Ito + ifunny;
 }
 
 __device__ __host__
