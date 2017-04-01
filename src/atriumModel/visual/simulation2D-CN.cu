@@ -237,12 +237,12 @@ int main(int argc, char *argv[]){
   int flag_stm = 1;
   db Istim = 0.0;
 //-------------------------------------
-  nrepeat = 4;   //60-> 1min, 600-> 10min
+  nrepeat = 1;   //60-> 1min, 600-> 10min
   tbegin = 50; //100; //50
   //BCL =  250;//600;  //1000
   CI = 0;
   dtstim = 2;
-  CurrStim = -8000;
+  CurrStim = -12000;
   nstp_prn = 10;
   tend = tbegin+dtstim;
 //-------------------------------------
@@ -368,6 +368,7 @@ int main(int argc, char *argv[]){
   int ncharts = 4;
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
+  // Take into account, uncommented to make some profiling tests
   //nstp=-1;  // only for one iteration
 
   //// Inicialización de Paraview Catalyst ///////////////////////
