@@ -368,6 +368,7 @@ int main(int argc, char *argv[]){
   int time_to_print = nstp- ((ncharts*BCL+tbegin)/dt);
 
   // Leave uncommented to make performance tests
+
   nstp=-1;  // only for one iteration
 
   //// Inicialización de Paraview Catalyst ///////////////////////
